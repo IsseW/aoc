@@ -75,7 +75,6 @@ pub fn solution_2(input: &str) -> String {
                 }
             });
         }
-        //println!("{:#?}", numbers);
     }
     let mut a = 0;
     let mut b = 0;

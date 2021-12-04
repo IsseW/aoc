@@ -661,6 +661,15 @@ impl<T> Grid<T> {
     pub fn get_size(&self) -> (usize, usize) {
         (self.width, self.height)
     }
+
+    pub fn indices(&self) -> GridIndexIter {
+        GridIndexIter {
+            x: 0,
+            y: 0,
+            width: self.width,
+            height: self.height,
+        }
+    }
 }
 
 pub trait GridIndex {
@@ -795,6 +804,29 @@ impl<T: Clone> Clone for Grid<T> {
             data: self.data.clone(),
             width: self.width.clone(),
             height: self.height.clone(),
+        }
+    }
+}
+
+pub struct GridIndexIter {
+    x: usize,
+    y: usize,
+    width: usize,
+    height: usize,
+}
+
+impl Iterator for GridIndexIter {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.y < self.height {
+            let result = Some((self.x, self.y));
+            self.x += 1;
+            self.y += self.x / self.width;
+            self.x %= self.width;
+            result
+        } else {
+            None
         }
     }
 }
