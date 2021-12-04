@@ -1,7 +1,9 @@
+use hashbrown::HashMap;
+
 use crate::helpers::*;
 const BOARD_SIZE: usize = 5;
 
-fn parse_boards(input: &str) -> Vec<Grid<u8>> {
+fn parse_boards(input: &str, map: &impl Fn(u8) -> u8) -> Vec<Grid<u8>> {
     input
         .split("\n\n")
         .map(|board| {
@@ -10,96 +12,88 @@ fn parse_boards(input: &str) -> Vec<Grid<u8>> {
                 .map(|line| {
                     line.split_whitespace()
                         .filter_map(|num| num.parse::<u8>().ok())
+                        .map(map)
                 })
                 .flatten()
                 .collect_rows(BOARD_SIZE)
         })
         .collect::<Vec<_>>()
 }
-fn parse_input(input: &str) -> (Vec<u8>, Vec<Grid<u8>>) {
-    let (input, boards) = input.split_once("\n\n").unwrap();
 
-    (
-        input.split(',').map(|l| l.parse().unwrap()).collect(),
-        parse_boards(boards),
-    )
+// Parses the boards in what order the numbers are called.
+fn parse_input(input: &str) -> (Vec<Grid<u8>>, Vec<u8>) {
+    let (input, boards) = input.split_once("\n\n").unwrap();
+    let inputs: Vec<u8> = input.split(',').map(|l| l.parse().unwrap()).collect();
+    let input_order = inputs
+        .iter()
+        .enumerate()
+        .map(|(index, l)| (*l, index as u8))
+        .collect::<HashMap<u8, u8>>();
+    (parse_boards(boards, &|i| input_order[&i]), inputs)
 }
 
 pub fn solution_1(input: &str) -> String {
-    let (inputs, boards) = parse_input(input);
-    let mut board_check = vec![Grid::<bool>::new(BOARD_SIZE, BOARD_SIZE); boards.len()];
+    let (boards, map) = parse_input(input);
 
-    for input in inputs {
-        for (board, board_check) in boards.iter().zip(board_check.iter_mut()) {
-            for (x, y) in board.indices() {
-                if board[(x, y)] == input {
-                    board_check[(x, y)] = true;
-                    if board_check.get_row(y).iter().all(|&b| b)
-                        || board_check.get_column(x).iter().all(|&b| b)
-                    {
-                        let mut sum = 0;
-                        for (x, y) in board.indices() {
-                            if !board_check[(x, y)] {
-                                sum += board[(x, y)] as u32;
-                            }
-                        }
-                        return (sum * board[(x, y)] as u32).to_string();
-                    }
-                }
-            }
+    let (board, value) = boards
+        .iter()
+        .map(|board| {
+            board
+                .rows()
+                .map(|row| *row.iter().max().unwrap())
+                .min()
+                .unwrap()
+                .min(
+                    board
+                        .columns()
+                        .map(|row| *row.iter().max().unwrap())
+                        .min()
+                        .unwrap(),
+                )
+        })
+        .enumerate()
+        .min_by_key(|(_, v)| *v)
+        .unwrap();
+
+    let mut sum = 0;
+    for cell in boards[board].iter() {
+        if *cell > value {
+            sum += map[*cell as usize] as u32;
         }
     }
-    "No solution found".to_string()
+
+    (map[value as usize] as u32 * sum).to_string()
 }
 
 pub fn solution_2(input: &str) -> String {
-    let (inputs, mut boards) = parse_input(input);
-    let mut board_check = vec![Grid::<bool>::new(BOARD_SIZE, BOARD_SIZE); boards.len()];
+    let (boards, map) = parse_input(input);
 
-    for input in inputs {
-        if boards.len() == 1 {
-            println!("ONE LEFT");
-            let board = &boards[0];
-            let board_check = &mut board_check[0];
+    let (board, value) = boards
+        .iter()
+        .map(|board| {
+            board
+                .rows()
+                .map(|row| *row.iter().max().unwrap())
+                .min()
+                .unwrap()
+                .min(
+                    board
+                        .columns()
+                        .map(|row| *row.iter().max().unwrap())
+                        .min()
+                        .unwrap(),
+                )
+        })
+        .enumerate()
+        .max_by_key(|(_, v)| *v)
+        .unwrap();
 
-            for (x, y) in board.indices() {
-                if board[(x, y)] == input {
-                    board_check[(x, y)] = true;
-                    if board_check.get_row(y).iter().all(|&b| b)
-                        || board_check.get_column(x).iter().all(|&b| b)
-                    {
-                        let mut sum = 0;
-                        for (x, y) in board.indices() {
-                            if !board_check[(x, y)] {
-                                sum += board[(x, y)] as u32;
-                            }
-                        }
-                        return (sum * board[(x, y)] as u32).to_string();
-                    }
-                }
-            }
-        } else {
-            let mut b = None;
-            for ((index, board), board_check) in
-                boards.iter().enumerate().zip(board_check.iter_mut())
-            {
-                for (x, y) in board.indices() {
-                    if board[(x, y)] == input {
-                        board_check[(x, y)] = true;
-                        if board_check.get_row(y).iter().all(|&b| b)
-                            || board_check.get_column(x).iter().all(|&b| b)
-                        {
-                            b = Some(index);
-                        }
-                    }
-                }
-            }
-            if let Some(b) = b {
-                boards.swap_remove(b);
-                board_check.swap_remove(b);
-            }
+    let mut sum = 0;
+    for cell in boards[board].iter() {
+        if *cell > value {
+            sum += map[*cell as usize] as u32;
         }
     }
 
-    "No solution found".to_string()
+    (map[value as usize] as u32 * sum).to_string()
 }
