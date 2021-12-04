@@ -20,7 +20,7 @@ fn parse_boards(input: &str, map: &impl Fn(u8) -> u8) -> Vec<Grid<u8>> {
         .collect::<Vec<_>>()
 }
 
-// Parses the boards in what order the numbers are called.
+// Parses the boards in what order the numbers are inputted.
 fn parse_input(input: &str) -> (Vec<Grid<u8>>, Vec<u8>) {
     let (input, boards) = input.split_once("\n\n").unwrap();
     let inputs: Vec<u8> = input.split(',').map(|l| l.parse().unwrap()).collect();
@@ -55,12 +55,16 @@ pub fn solution_1(input: &str) -> String {
         .min_by_key(|(_, v)| *v)
         .unwrap();
 
-    let mut sum = 0;
-    for cell in boards[board].iter() {
-        if *cell > value {
-            sum += map[*cell as usize] as u32;
-        }
-    }
+    let sum = boards[board]
+        .iter()
+        .filter_map(|c| {
+            if *c > value {
+                Some(map[*c as usize] as u32)
+            } else {
+                None
+            }
+        })
+        .sum::<u32>();
 
     (map[value as usize] as u32 * sum).to_string()
 }
@@ -88,12 +92,15 @@ pub fn solution_2(input: &str) -> String {
         .max_by_key(|(_, v)| *v)
         .unwrap();
 
-    let mut sum = 0;
-    for cell in boards[board].iter() {
-        if *cell > value {
-            sum += map[*cell as usize] as u32;
-        }
-    }
-
+    let sum = boards[board]
+        .iter()
+        .filter_map(|c| {
+            if *c > value {
+                Some(map[*c as usize] as u32)
+            } else {
+                None
+            }
+        })
+        .sum::<u32>();
     (map[value as usize] as u32 * sum).to_string()
 }
