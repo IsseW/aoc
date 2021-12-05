@@ -1,22 +1,129 @@
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use itertools::Itertools;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::helpers::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 enum Kind {
     Generator,
     Chip,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 struct Thing {
     id: NodeId,
     kind: Kind,
 }
 
-fn get_floors(input: &str) -> [Vec<Thing>; 4] {
+impl Thing {
+    fn get_counterpart(&self) -> Thing {
+        Thing {
+            id: self.id,
+            kind: match self.kind {
+                Kind::Generator => Kind::Chip,
+                Kind::Chip => Kind::Generator,
+            },
+        }
+    }
+}
+
+const NUM_FLOORS: usize = 4;
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+struct State {
+    current: usize,
+    floors: [Vec<Thing>; NUM_FLOORS],
+}
+
+impl State {
+    fn count_kind(&self, kind: Kind, floor: usize) -> usize {
+        self.floors[floor].iter().filter(|t| t.kind == kind).count()
+    }
+    fn does_thing_exist(&self, floor: usize, thing: Thing) -> bool {
+        self.floors[floor].contains(&thing)
+    }
+
+    fn get_connecting(&self) -> Vec<(State, i32)> {
+        (1..=2)
+            .map(|amount| {
+                self.floors[self.current]
+                    .iter()
+                    .combinations(amount)
+                    .zip(if self.current > 0 && self.current < 3 {
+                        [-1, 1].iter()
+                    } else if self.current > 0 {
+                        [1].iter()
+                    } else {
+                        [-1].iter()
+                    })
+                    .filter(move |(combination, &dir)| {
+                        if amount == 2 {
+                            if dir == -1 {
+                                return false;
+                            }
+                            if combination[0].kind != combination[1].kind
+                                && combination[0].id != combination[1].id
+                            {
+                                return false;
+                            }
+                        }
+                        let next_floor = (self.current as i32 + dir) as usize;
+                        for thing in combination {
+                            if !combination.contains(&&thing.get_counterpart()) {
+                                match thing.kind {
+                                    Kind::Generator => {
+                                        if self
+                                            .does_thing_exist(self.current, thing.get_counterpart())
+                                            && self.count_kind(Kind::Generator, self.current)
+                                                >= self.count_kind(Kind::Chip, self.current)
+                                        {
+                                            return false;
+                                        }
+                                        if !self
+                                            .does_thing_exist(next_floor, thing.get_counterpart())
+                                            && self.count_kind(Kind::Chip, next_floor)
+                                                > self.count_kind(Kind::Generator, next_floor)
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                    Kind::Chip => {
+                                        if self
+                                            .does_thing_exist(self.current, thing.get_counterpart())
+                                            && self.count_kind(Kind::Chip, self.current)
+                                                > self.count_kind(Kind::Generator, self.current)
+                                        {
+                                            return false;
+                                        }
+                                        if !self
+                                            .does_thing_exist(self.current, thing.get_counterpart())
+                                            && self.count_kind(Kind::Generator, self.current)
+                                                >= self.count_kind(Kind::Chip, self.current)
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        todo!()
+                    })
+                    .map(move |(combination, dir)| {
+                        let mut new_state = self.clone();
+                        new_state.current = (new_state.current as i32 + dir) as usize;
+                        new_state.floors[self.current]
+                            .drain_filter(|&mut thing| combination.iter().any(|&&t| t == thing));
+                        new_state.floors[new_state.current]
+                            .extend(combination.iter().map(|t| t.clone()));
+                        (new_state, amount as i32 * dir)
+                    })
+            })
+            .flatten()
+            .collect()
+    }
+}
+
+fn get_start_state(input: &str) -> State {
     let mut floors = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
     input.lines().enumerate().for_each(|(floor, line)| {
         for part in line.split(',') {
@@ -38,70 +145,38 @@ fn get_floors(input: &str) -> [Vec<Thing>; 4] {
             }
         }
     });
-    floors
+    State { current: 0, floors }
+}
+
+fn state_distance(state: &State) -> usize {
+    state
+        .floors
+        .iter()
+        .enumerate()
+        .map(|(index, floor)| floor.len() * (NUM_FLOORS - index - 1))
+        .sum()
 }
 
 pub fn solution_1(input: &str) -> String {
-    let floors = get_floors(input);
-    fn solve(floors: [Vec<Thing>; 4], elevator: usize, steps: usize) -> usize {
-        if steps > 10 {
-            return usize::MAX;
-        }
-        if floors[0].len() == 0 && floors[1].len() == 0 && floors[2].len() == 0 {
-            return steps;
-        }
-        let mut test = floors[elevator]
+    let input = "The first floor contains a hydrogen-compatible microchip and a lithium-compatible microchip.
+The second floor contains a hydrogen generator.
+The third floor contains a lithium generator.
+The fourth floor contains nothing relevant.";
+    let initial_state = get_start_state(input);
+    // A star our way to the solution...
+    let mut open = HashMap::new();
+    let mut closed = HashMap::new();
+    let dis = state_distance(&initial_state);
+    open.insert(initial_state, (0, dis));
+
+    loop {
+        let (closest_state, (walked, left)) = open
             .iter()
-            .map(|t| (t.id, 0))
-            .collect::<HashMap<_, _>>();
-
-        for thing in &floors[elevator] {
-            *test.get_mut(&thing.id).unwrap() += match thing.kind {
-                Kind::Generator => 1,
-                Kind::Chip => -1,
-            };
-        }
-        if test.values().min().unwrap_or(&0) < &0 {
-            return usize::MAX;
-        }
-        (1..floors[elevator].len())
-            .map(|amount| {
-                floors[elevator]
-                    .iter()
-                    .combinations(amount)
-                    .par_bridge()
-                    .map(|combo| {
-                        if elevator > 0 {
-                            let mut n_f = floors.clone();
-                            let n_e = elevator - 1;
-                            n_f[n_e].extend(combo.iter().map(|c| **c));
-                            n_f[elevator].drain_filter(|thing| {
-                                combo.iter().filter(|t| thing == **t).count() > 0
-                            });
-                            solve(n_f, elevator - 1, steps + 1)
-                        } else {
-                            usize::MAX
-                        }
-                        .min(if elevator < 3 {
-                            let mut n_f = floors.clone();
-                            let n_e = elevator + 1;
-                            n_f[n_e].extend(combo.iter().map(|c| **c));
-                            n_f[elevator].drain_filter(|thing| {
-                                combo.iter().filter(|t| thing == **t).count() > 0
-                            });
-                            solve(n_f, elevator + 1, steps + 1)
-                        } else {
-                            usize::MAX
-                        })
-                    })
-                    .min()
-                    .unwrap_or(usize::MAX)
-            })
-            .min()
-            .unwrap_or(usize::MAX)
+            .min_by_key(|(_, &(walked, left))| walked + left)
+            .unwrap();
+        let score = walked + left;
+        closed.insert(closest_state.clone(), score);
     }
-
-    solve(floors, 0, 0).to_string()
 }
 
 pub fn solution_2(input: &str) -> String {

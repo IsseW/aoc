@@ -729,6 +729,19 @@ impl<T> Grid<T> {
     }
 }
 
+impl<T: fmt::Display> fmt::Display for Grid<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\n")?;
+        for row in self.rows() {
+            for tile in row.iter() {
+                write!(f, "{} ", tile)?;
+            }
+            write!(f, "\n")?;
+        }
+        Ok(())
+    }
+}
+
 pub trait GridIndex {
     type Output;
     fn get_start(&self) -> (usize, usize);

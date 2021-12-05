@@ -1,7 +1,9 @@
 mod grid;
+mod line;
 mod node;
 
 pub use grid::*;
+pub use line::*;
 pub use node::*;
 
 pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
@@ -24,4 +26,15 @@ pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
     }
 
     t.parse::<T>().expect("Failed to parse number")
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct OrderedFloat(pub f32);
+
+impl Eq for OrderedFloat {}
+
+impl Ord for OrderedFloat {
+    fn cmp(&self, other: &OrderedFloat) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
 }
