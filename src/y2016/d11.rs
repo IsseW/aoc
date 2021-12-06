@@ -165,18 +165,23 @@ The fourth floor contains nothing relevant.";
     let initial_state = get_start_state(input);
     // A star our way to the solution...
     let mut open = HashMap::new();
-    let mut closed = HashMap::new();
+    // let mut closed = HashMap::new();
     let dis = state_distance(&initial_state);
     open.insert(initial_state, (0, dis));
 
-    loop {
-        let (closest_state, (walked, left)) = open
-            .iter()
-            .min_by_key(|(_, &(walked, left))| walked + left)
-            .unwrap();
-        let score = walked + left;
-        closed.insert(closest_state.clone(), score);
-    }
+    //while open.len() > 0 {
+    //    let (closest_state, (steps, left)) = open
+    //        .iter()
+    //        .min_by_key(|(_, &(steps, left))| steps + left)
+    //        .unwrap();
+    //    if left == 0 {
+    //        return steps.to_string();
+    //    }
+    //
+    //    open.remove(&closest_state);
+    //    closed.insert(closest_state.clone(), (steps, left));
+    //}
+    "No solution found".to_string()
 }
 
 pub fn solution_2(input: &str) -> String {
