@@ -30,12 +30,12 @@ const DIGIT_POSITIONS: [&'static [u8]; 10] = [
 ];
 
 fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> {
-    let possible_digits = (0..10)
+    let possible_digits = (0..10u8)
         .filter(|&digit| segments.len() == DIGIT_POSITIONS[digit as usize].len())
         .filter(|&digit| {
-            DIGIT_POSITIONS[digit].iter().all(|segment| {
-                
-            })
+            DIGIT_POSITIONS[digit as usize].iter().all(|segment| {
+                true
+            });
             segments.iter().all(|segment| {
                 dbg!(segment);
                 
@@ -128,6 +128,7 @@ pub fn solution_2(input: &str) -> String {
     dbg!(get_possible(&vec![0, 2, 3], &mut possible));
 
     return String::new();
+    /*
     input
         .lines()
         .map(|line| {
@@ -168,4 +169,5 @@ pub fn solution_2(input: &str) -> String {
         })
         .next()
         .unwrap()
+        */
 }

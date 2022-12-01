@@ -1,0 +1,18 @@
+use crate::helpers;
+
+fn elf_foods<'a>(input: &'a str) -> impl Iterator<Item = u64> + 'a {
+	input.split("\n\n").map(|elf| {
+		elf.lines().filter_map(|line| line.parse::<u64>().ok()).sum::<u64>()
+	})
+}
+
+pub fn solution_1(input: &str) -> String {
+	elf_foods(input).max().unwrap().to_string()
+}
+
+pub fn solution_2(input: &str) -> String {
+	let mut elfs = elf_foods(input).collect::<Vec<_>>();
+	elfs.sort();
+	let max = elfs.pop().unwrap() + elfs.pop().unwrap() + elfs.pop().unwrap();
+	max.to_string()
+}
