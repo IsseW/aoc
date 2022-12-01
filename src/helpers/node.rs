@@ -8,7 +8,7 @@ use std::{
 use num_traits::Num;
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
-pub struct NodeId(u64);
+pub struct NodeId(pub u64);
 
 impl NodeId {
     pub fn new(string: &str) -> Self {
@@ -49,4 +49,3 @@ pub fn extract_numbers<T: Num>(input: &str) -> Vec<T> {
         })
         .collect()
 }
-

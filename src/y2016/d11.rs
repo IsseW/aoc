@@ -1,6 +1,10 @@
-use hashbrown::{HashMap, HashSet};
+use core::fmt::{self, Display};
+
 use itertools::Itertools;
-use rayon::iter::{ParallelBridge, ParallelIterator};
+use rayon::iter::{
+    IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator,
+};
+use std::collections::{HashMap, HashSet};
 
 use crate::helpers::*;
 
@@ -43,22 +47,22 @@ impl State {
         self.floors[floor].contains(&thing)
     }
 
-    fn get_connecting(&self) -> Vec<(State, i32)> {
+    fn get_connecting(&self, cache: &mut Cache) -> Vec<State> {
         (1..=2)
+            .into_par_iter()
             .map(|amount| {
                 self.floors[self.current]
                     .iter()
                     .combinations(amount)
-                    .zip(if self.current > 0 && self.current < 3 {
-                        [-1, 1].iter()
-                    } else if self.current > 0 {
-                        [1].iter()
-                    } else {
-                        [-1].iter()
-                    })
-                    .filter(move |(combination, &dir)| {
+                    .map(|combination| vec![(-1, combination.clone()), (1, combination)])
+                    .flatten()
+                    .par_bridge()
+                    .filter(move |(dir, combination)| {
+                        if self.current == 0 && *dir == -1 || self.current == 3 && *dir == 1 {
+                            return false;
+                        }
                         if amount == 2 {
-                            if dir == -1 {
+                            if *dir == -1 {
                                 return false;
                             }
                             if combination[0].kind != combination[1].kind
@@ -75,7 +79,7 @@ impl State {
                                         if self
                                             .does_thing_exist(self.current, thing.get_counterpart())
                                             && self.count_kind(Kind::Generator, self.current)
-                                                >= self.count_kind(Kind::Chip, self.current)
+                                                > self.count_kind(Kind::Chip, self.current)
                                         {
                                             return false;
                                         }
@@ -96,9 +100,9 @@ impl State {
                                             return false;
                                         }
                                         if !self
-                                            .does_thing_exist(self.current, thing.get_counterpart())
-                                            && self.count_kind(Kind::Generator, self.current)
-                                                >= self.count_kind(Kind::Chip, self.current)
+                                            .does_thing_exist(next_floor, thing.get_counterpart())
+                                            && self.count_kind(Kind::Generator, next_floor)
+                                                > self.count_kind(Kind::Chip, next_floor)
                                         {
                                             return false;
                                         }
@@ -106,27 +110,60 @@ impl State {
                                 }
                             }
                         }
-                        todo!()
+                        true
                     })
-                    .map(move |(combination, dir)| {
+                    .map(move |(dir, combination)| {
                         let mut new_state = self.clone();
                         new_state.current = (new_state.current as i32 + dir) as usize;
                         new_state.floors[self.current]
                             .drain_filter(|&mut thing| combination.iter().any(|&&t| t == thing));
                         new_state.floors[new_state.current]
                             .extend(combination.iter().map(|t| t.clone()));
-                        (new_state, amount as i32 * dir)
+                        new_state
                     })
             })
             .flatten()
             .collect()
+    }
+
+    fn distance(&self) -> usize {
+        self.floors
+            .iter()
+            .enumerate()
+            .map(|(index, floor)| (floor.len() / 2 + floor.len() % 2) * (NUM_FLOORS - 1 - index))
+            .sum()
+    }
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (index, floor) in self.floors.iter().enumerate().rev() {
+            if index == self.current {
+                write!(f, "F{} E", index)?;
+            } else {
+                write!(f, "F{} .", index)?;
+            }
+            for thing in floor {
+                write!(
+                    f,
+                    " {}{}",
+                    match thing.kind {
+                        Kind::Generator => 'G',
+                        Kind::Chip => 'C',
+                    },
+                    thing.id.0 % 69
+                )?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
 fn get_start_state(input: &str) -> State {
     let mut floors = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
     input.lines().enumerate().for_each(|(floor, line)| {
-        for part in line.split(',') {
+        for part in line.split(", ").map(|s| s.split(" and ")).flatten() {
             let mut p = part.trim_end_matches('.').split_whitespace().rev();
             match p.next() {
                 Some("generator") => {
@@ -148,39 +185,68 @@ fn get_start_state(input: &str) -> State {
     State { current: 0, floors }
 }
 
-fn state_distance(state: &State) -> usize {
-    state
-        .floors
-        .iter()
-        .enumerate()
-        .map(|(index, floor)| floor.len() * (NUM_FLOORS - index - 1))
-        .sum()
-}
+type Cache = HashMap<[Vec<i32>; 3], Vec<[Vec<i32>; 3]>>;
 
 pub fn solution_1(input: &str) -> String {
-    let input = "The first floor contains a hydrogen-compatible microchip and a lithium-compatible microchip.
-The second floor contains a hydrogen generator.
-The third floor contains a lithium generator.
-The fourth floor contains nothing relevant.";
     let initial_state = get_start_state(input);
     // A star our way to the solution...
-    let mut open = HashMap::new();
-    // let mut closed = HashMap::new();
-    let dis = state_distance(&initial_state);
-    open.insert(initial_state, (0, dis));
+    let mut closed = HashMap::new();
+    let dis = initial_state.distance();
+    const MAX_DISTANCE: usize = 100;
+    let mut open_o = HashMap::new();
+    let mut open = vec![HashMap::new(); MAX_DISTANCE];
+    open[0].insert(initial_state, (0, dis));
 
-    //while open.len() > 0 {
-    //    let (closest_state, (steps, left)) = open
-    //        .iter()
-    //        .min_by_key(|(_, &(steps, left))| steps + left)
-    //        .unwrap();
-    //    if left == 0 {
-    //        return steps.to_string();
-    //    }
-    //
-    //    open.remove(&closest_state);
-    //    closed.insert(closest_state.clone(), (steps, left));
-    //}
+    let mut cached_states = Cache::new();
+
+    while open.len() > 0 {
+        let (closest_state, steps, left) = open
+            .iter()
+            .filter(|x| x.len() > 0)
+            .next()
+            .unwrap()
+            .iter()
+            .next()
+            .map(|(state, (steps, left))| (state.clone(), *steps, *left))
+            .unwrap();
+
+        if left == 0 {
+            return steps.to_string();
+        }
+
+        open.iter_mut()
+            .filter(|x| x.len() > 0)
+            .next()
+            .unwrap()
+            .remove(&closest_state);
+        open_o.remove(&closest_state);
+
+        for state in closest_state.get_connecting(&mut cached_states) {
+            if !closed.contains_key(&state) {
+                let distance = state.distance();
+                let entry = open_o
+                    .entry(state.clone())
+                    .or_insert((usize::MAX, distance));
+                if entry.0 > steps + 1 {
+                    let d = entry.0 + entry.1;
+                    let i = d - dis;
+                    if i < MAX_DISTANCE {
+                        open[i].remove(&state);
+                    }
+                    entry.0 = steps + 1;
+                    let d = entry.0 + entry.1;
+                    let i = d - dis;
+                    if i < MAX_DISTANCE {
+                        open[i].insert(state, entry.clone());
+                    }
+                }
+            }
+        }
+        closed.insert(closest_state.clone(), (steps, left));
+        if closed.len() % 1000 == 0 {
+            println!("{}\t\t{}", closed.len(), open_o.len());
+        }
+    }
     "No solution found".to_string()
 }
 

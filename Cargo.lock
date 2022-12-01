@@ -27,6 +27,7 @@ dependencies = [
  "paste",
  "rand",
  "rayon",
+ "rayon-hash",
  "seq-macro",
  "serde",
  "serde_json",
@@ -326,6 +327,15 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
+]
+
+[[package]]
+name = "rayon-hash"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95d4377515f00ea0c33b67513c68c168bf44410f1cda783d7bd8fbbf7ca0f9e2"
+dependencies = [
+ "rayon",
 ]
 
 [[package]]
