@@ -13,6 +13,6 @@ pub fn solution_1(input: &str) -> String {
 pub fn solution_2(input: &str) -> String {
 	let mut elfs = elf_foods(input).collect::<Vec<_>>();
 	elfs.sort();
-	let max = elfs.pop().unwrap() + elfs.pop().unwrap() + elfs.pop().unwrap();
+	let max: u64 = elfs[elfs.len() - 3..].into_iter().sum();
 	max.to_string()
 }
