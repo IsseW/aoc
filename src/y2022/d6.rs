@@ -1,9 +1,17 @@
-use crate::helpers;
+use iterslide::SlideIterator;
+use itertools::Itertools;
+
+fn solve(input: &str, n: usize) -> String {
+	let (i, _) = input.chars().slide(n).enumerate().find(|(i, f)| {
+		f.into_iter().all_unique()
+	}).unwrap();
+	(i + n).to_string()
+}
 
 pub fn solution_1(input: &str) -> String {
-	"Not yet implemented".into()
+	solve(input, 4)
 }
 
 pub fn solution_2(input: &str) -> String {
-	"Not yet implemented".into()
+	solve(input, 14)
 }

@@ -1,5 +1,4 @@
-#![feature(iter_advance_by)]
-#![feature(drain_filter)]
+#![feature(iter_advance_by, pattern, drain_filter)]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
