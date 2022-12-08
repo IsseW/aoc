@@ -400,7 +400,7 @@ pub trait GridLinearSlice<'a>: Sized {
     fn get(&self, i: usize) -> Option<&Self::Output>;
 
     fn iter(&'a self) -> GridLinearIter<Self> {
-        GridLinearIter { slice: self, i: 0 }
+        GridLinearIter { slice: self, front: 0, back: self.len() as isize - 1 }
     }
 
     fn from_grid(grid: &'a Grid<Self::Output>, i: usize) -> Option<Self>;
@@ -412,31 +412,66 @@ pub trait GridLinearSliceMut<'a>: GridLinearSlice<'a> {
 
 pub struct GridLinearIter<'a, L: GridLinearSlice<'a>> {
     slice: &'a L,
-    i: usize,
+    front: isize,
+    back: isize,
 }
 
 impl<'a, L: GridLinearSlice<'a>> Iterator for GridLinearIter<'a, L> {
     type Item = &'a L::Output;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self.slice.get(self.i);
-        self.i += 1;
-        ret
+        if self.front <= self.back {
+            let ret = self.slice.get(self.front.try_into().ok()?);
+            self.front += 1;
+            ret
+        } else {
+            None
+        }
+    }
+}
+
+
+impl<'a, L: GridLinearSlice<'a>> DoubleEndedIterator for GridLinearIter<'a, L> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let ret = self.slice.get(self.back.try_into().ok()?);
+            self.back -= 1;
+            ret
+        } else {
+            None
+        }
     }
 }
 
 pub struct GridLinear<'a, S: GridLinearSlice<'a>> {
     grid: &'a Grid<S::Output>,
-    i: usize,
+    front: isize,
+    back: isize,
 }
 
 impl<'a, S: GridLinearSlice<'a>> Iterator for GridLinear<'a, S> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let l = S::from_grid(self.grid, self.i);
-        self.i += 1;
-        l
+        if self.front <= self.back {
+            let l = S::from_grid(self.grid, self.front.try_into().ok()?);
+            self.front += 1;
+            l
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, S: GridLinearSlice<'a>> DoubleEndedIterator for GridLinear<'a, S> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let l = S::from_grid(self.grid, self.back.try_into().ok()?);
+            self.back -= 1;
+            l
+        } else {
+            None
+        }
     }
 }
 
@@ -666,11 +701,11 @@ impl<T> Grid<T> {
     }
 
     pub fn rows(&self) -> GridLinear<GridRowSlice<T>> {
-        GridLinear { grid: self, i: 0 }
+        GridLinear { grid: self, front: 0, back: self.height as isize - 1 }
     }
 
     pub fn columns(&self) -> GridLinear<GridColumnSlice<T>> {
-        GridLinear { grid: self, i: 0 }
+        GridLinear { grid: self, front: 0, back: self.width as isize - 1 }
     }
 
     pub fn get_row(&self, y: usize) -> Option<GridRowSlice<T>> {
