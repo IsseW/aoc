@@ -1,7 +1,3 @@
-use std::ops::RangeInclusive;
-
-use crate::helpers;
-
 fn parse<'a>(input: &'a str) -> impl Iterator<Item = ((u32, u32), (u32, u32))> + 'a {
 	input.lines().filter_map(|ranges| {
 		let (r1, r2) = ranges.split_once(',')?;
