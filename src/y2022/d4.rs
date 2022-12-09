@@ -1,13 +1,7 @@
 fn parse<'a>(input: &'a str) -> impl Iterator<Item = ((u32, u32), (u32, u32))> + 'a {
 	input.lines().filter_map(|ranges| {
-		let (r1, r2) = ranges.split_once(',')?;
-		let parse_range = |range: &str| {
-			let (a, b) = range.split_once("-")?;
-			Some((a.parse::<u32>().ok()?, b.parse::<u32>().ok()?))
-		};
-		let r1 = parse_range(r1)?;
-		let r2 = parse_range(r2)?;
-		Some((r1, r2))
+		let res: (u32, u32, u32, u32) = strp::try_scan!(ranges => "{}-{},{}-{}").ok()?;
+		Some(((res.0, res.1), (res.2, res.3)))
 	})
 }
 
