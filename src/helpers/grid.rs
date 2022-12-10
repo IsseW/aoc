@@ -894,6 +894,7 @@ impl Grid<bool> {
         assert_eq!(self.width % 5, 0, "Can only parse characters of width 4, with a space of 1");
         let l = self.width / 5;
         let mut result = String::with_capacity(l);
+        // println!("{}", self.to_map());
         for i in 0..l {
             let slice = self.get_slice(Rect::new(i * 5, 0, 4, 6));
 
@@ -908,10 +909,12 @@ impl Grid<bool> {
             result.push(match w {
                 10090902 => 'A',
                 7968663 => 'B',
+                15800095 => 'E',
                 1120031 => 'F',
                 15323542 => 'G',
                 10067865 => 'H',
                 6916236 => 'J',
+                15798545 => 'L',
                 6920598 => 'O',
                 1145239 => 'P',
                 9795991 => 'R',
