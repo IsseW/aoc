@@ -68,5 +68,5 @@ pub fn solution_2(input: &str) -> String {
 		instr.exec(&mut x);
 	}
 
-	screen.parse_word().trim_end().to_string()
+	screen.parse_word()
 }

@@ -892,29 +892,16 @@ impl Grid<bool> {
     pub fn parse_word(&self) -> String {
         assert_eq!(self.height, 6, "Can only parse character of height 6");
         assert_eq!(self.width % 5, 0, "Can only parse characters of width 4, with a space of 1");
-        let mut result = String::with_capacity(self.width / 5);
-        for i in 0..10 {
-            let x = i * 5;
+        let l = self.width / 5;
+        let mut result = String::with_capacity(l);
+        for i in 0..l {
+            let slice = self.get_slice(Rect::new(i * 5, 0, 4, 6));
 
-            let slice = self.get_slice(Rect::new(x, 0, 4, 6));
-            let v: Vec<_> = slice
+            let w = slice
                 .iter()
                 .map(|b| {
-                    if let Some(b) = b {
-                        if *b {
-                            1
-                        } else {
-                            0
-                        }
-                    } else {
-                        0
-                    }
-                })
-                .collect();
-            let mut w = 0u32;
-            for i in 0..v.len() {
-                w |= v[i] << i;
-            }
+                    b.map(|b| *b as u32).expect("This shouldn't happen since we've asserted the size at the top of the function.")
+                }).enumerate().fold(0, |acc, (i, v)| acc | (v << i));
 
             // println!("{}", w);
 
