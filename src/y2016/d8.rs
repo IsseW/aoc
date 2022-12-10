@@ -72,48 +72,6 @@ pub fn solution_1(input: &str) -> String {
 
 pub fn solution_2(input: &str) -> String {
     let screen = parse_screen(input);
-    // println!("{}", screen.to_map());
-    let mut result = String::new();
-    for i in 0..10 {
-        let x = i * 5;
 
-        let slice = screen.get_slice(Rect::new(x, 0, 4, 6));
-        let v: Vec<_> = slice
-            .iter()
-            .map(|b| {
-                if let Some(b) = b {
-                    if *b {
-                        1
-                    } else {
-                        0
-                    }
-                } else {
-                    0
-                }
-            })
-            .collect();
-        let mut w = 0u32;
-        for i in 0..v.len() {
-            w |= v[i] << i;
-        }
-
-        // println!("{}", w);
-
-        result.push(match w {
-            10090902 => 'A',
-            7968663 => 'B',
-            1120031 => 'F',
-            15323542 => 'G',
-            10067865 => 'H',
-            6916236 => 'J',
-            6920598 => 'O',
-            1145239 => 'P',
-            7889182 => 'S',
-            6920601 => 'U',
-            15803535 => 'Z',
-            _ => '_',
-        })
-    }
-
-    result
+    screen.parse_word()
 }

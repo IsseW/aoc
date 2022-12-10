@@ -888,6 +888,55 @@ impl Grid<bool> {
         }
         output
     }
+
+    pub fn parse_word(&self) -> String {
+        assert_eq!(self.height, 6, "Can only parse character of height 6");
+        assert_eq!(self.width % 5, 0, "Can only parse characters of width 4, with a space of 1");
+        let mut result = String::with_capacity(self.width / 5);
+        for i in 0..10 {
+            let x = i * 5;
+
+            let slice = self.get_slice(Rect::new(x, 0, 4, 6));
+            let v: Vec<_> = slice
+                .iter()
+                .map(|b| {
+                    if let Some(b) = b {
+                        if *b {
+                            1
+                        } else {
+                            0
+                        }
+                    } else {
+                        0
+                    }
+                })
+                .collect();
+            let mut w = 0u32;
+            for i in 0..v.len() {
+                w |= v[i] << i;
+            }
+
+            // println!("{}", w);
+
+            result.push(match w {
+                10090902 => 'A',
+                7968663 => 'B',
+                1120031 => 'F',
+                15323542 => 'G',
+                10067865 => 'H',
+                6916236 => 'J',
+                6920598 => 'O',
+                1145239 => 'P',
+                9795991 => 'R',
+                7889182 => 'S',
+                6920601 => 'U',
+                15803535 => 'Z',
+                0 => ' ',
+                _ => '?',
+            })
+        }
+        result
+    }
 }
 
 impl<T> Index<(usize, usize)> for Grid<T> {
