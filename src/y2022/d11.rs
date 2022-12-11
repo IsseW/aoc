@@ -113,13 +113,12 @@ fn calculate_monkey_buisness(input: &str, iter: u64, div: u64) -> u64 {
 			for mut item in items {
 				item = monkeys[i].oper.eval(item) / div % highest;
 				inspects[i] += 1;
-				if item % monkeys[i].test_div == 0 {
-					let to = monkeys[i].throw_true;
-					monkeys[to].items.push(item);
+				let to = if item % monkeys[i].test_div == 0 {
+					monkeys[i].throw_true
 				} else {
-					let to = monkeys[i].throw_false;
-					monkeys[to].items.push(item);
-				}
+					monkeys[i].throw_false
+				};
+				monkeys[to].items.push(item);
 			}
 		}
 	}
