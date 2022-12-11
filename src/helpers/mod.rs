@@ -99,6 +99,8 @@ pub trait StrUtil<'s>: Sized {
     ) -> Self::EnclosureIter<'a, A, B>;
 
     fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)> where P::Searcher: ReverseSearcher<'a>, 'a: 's, 's: 'a;
+
+    fn maybe_starts_with(self, other: Self) -> Option<Self>;
 }
 
 impl<'s> StrUtil<'s> for &'s str {
@@ -123,4 +125,31 @@ impl<'s> StrUtil<'s> for &'s str {
             Some((p.strip_suffix_of(&self[..i])?, &self[i..]))
         })
     }
+
+    fn maybe_starts_with(self, other: Self) -> Option<Self> {
+        if self.starts_with(other) {
+            Some(&self[other.len()..])
+        } else {
+            None
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! match_starts_with {
+    ($string:expr; $($pat:literal @ $ident:ident => $block:block)* _ => $else_block:block) => {
+        {
+            let _match = $string;
+            'match_block: {
+                use crate::helpers::StrUtil;
+                $(
+                    if let Some($ident) = _match.maybe_starts_with($pat) {
+                        let res = $block;
+                        break 'match_block res;
+                    }
+                )*
+                $else_block
+            }
+        }
+    };
 }

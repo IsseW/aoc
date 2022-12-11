@@ -61,41 +61,6 @@ pub fn solution_2(input: &str) -> String {
 			min = min.map2(positions.iter().copied().reduce(|a, b| a.map2(b, |a, b| a.min(b))).unwrap(), |a, b| a.min(b));
 			max = max.map2(positions.iter().copied().reduce(|a, b| a.map2(b, |a, b| a.max(b))).unwrap(), |a, b| a.max(b));
 		}
-
-		/* 
-		println!("\n== {line} ==\n");
-		for y in min.y..=max.y {
-			for x in min.x..=max.x {
-				let pos = Vec2::new(x, y);
-				if let Some((i, _)) = positions.iter().enumerate().find(|(_, p)| **p == pos) {
-					if i == 0 {
-						print!("H");
-					} else {
-						print!("{}", i);
-					}
-				} else if pos == Vec2::zero() {
-					print!("s");
-				} else {
-					print!(".");
-				}
-			}
-			println!()
-		}
-		*/
 	});
-	/*
-	println!("\n\n\n");
-
-	for y in min.y..=max.y {
-		for x in min.x..=max.x {
-			if set.contains(&Vec2::new(x, y)) {
-				print!("#")
-			} else {
-				print!(".");
-			}
-		}
-		println!()
-	}
-	*/
 	set.len().to_string()
 }
