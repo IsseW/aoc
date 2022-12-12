@@ -6,6 +6,7 @@ pub mod character_set;
 pub use grid::*;
 pub use line::*;
 pub use node::*;
+use num_traits::Zero;
 
 pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
     chars: &Vec<char>,
@@ -30,7 +31,7 @@ pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct OrderedFloat(pub f32);
+pub struct OrderedFloat(pub f64);
 
 impl Eq for OrderedFloat {}
 
@@ -40,8 +41,32 @@ impl Ord for OrderedFloat {
     }
 }
 
+impl Add for OrderedFloat {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        OrderedFloat(self.0 + rhs.0)
+    }
+}
+
+impl Zero for OrderedFloat {
+    fn zero() -> Self {
+        OrderedFloat(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
+}
+
+impl fmt::Display for OrderedFloat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 use core::str::pattern::Pattern;
-use std::{marker::PhantomData, str::{CharIndices, pattern::ReverseSearcher}};
+use std::{marker::PhantomData, str::{CharIndices, pattern::ReverseSearcher}, ops::Add, fmt};
 
 pub struct Enclosures<'s, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> {
     string: &'s str,

@@ -762,6 +762,57 @@ impl<T> Grid<T> {
             height: self.height,
         }
     }
+
+    pub fn find_path<N: Neighbors>(&self, start: (usize, usize), end: (usize, usize), mut transition: impl FnMut(&T, (usize, usize), &T, (usize, usize)) -> Option<f64>) -> Option<(Vec<(usize, usize)>, f64)> {
+        pathfinding::prelude::astar(
+            &start,
+            |node| {
+                let from = self.get(node.0, node.1).unwrap();
+                let mut neighbors = Vec::new();
+
+                for n in N::NEIGHBORS {
+                    let res = node.0.checked_add_signed(n.0).zip(node.1.checked_add_signed(n.1)).and_then(|n| {
+                        self.get(n.0, n.1).and_then(|to| {
+                            transition(from, *node, to, n).map(|t| {
+                                (t, n)
+                            })
+                        })
+                    });
+                    if let Some((transition, n)) = res {
+                        neighbors.push((n, super::OrderedFloat(transition)));
+                    }
+                }
+
+                neighbors
+            },
+            |node| {
+                let x = node.0.abs_diff(end.0);
+                let y = node.1.abs_diff(end.1);
+                super::OrderedFloat(((x * x + y * y) as f64).sqrt())
+            },
+            |node| {
+                *node == end
+            },
+        ).map(|(path, cost)| {
+            (path, cost.0)
+        })
+    }
+}
+
+pub trait Neighbors {
+    const NEIGHBORS: &'static [(isize, isize)];
+}
+
+pub struct Cardinals;
+
+impl Neighbors for Cardinals {
+    const NEIGHBORS: &'static [(isize, isize)] = &[(1, 0), (0, 1), (-1, 0), (0, -1)];
+}
+
+struct Close;
+
+impl Neighbors for Close {
+    const NEIGHBORS: &'static [(isize, isize)] = &[(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, 1), (0, -1), (1, -1)];
 }
 
 impl<T: fmt::Display> fmt::Display for Grid<T> {
