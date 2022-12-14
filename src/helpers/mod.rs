@@ -1,7 +1,7 @@
+pub mod character_set;
 mod grid;
 mod line;
 mod node;
-pub mod character_set;
 
 pub use grid::*;
 pub use line::*;
@@ -66,7 +66,12 @@ impl fmt::Display for OrderedFloat {
 }
 
 use core::str::pattern::Pattern;
-use std::{marker::PhantomData, str::{CharIndices, pattern::ReverseSearcher}, ops::Add, fmt};
+use std::{
+    fmt,
+    marker::PhantomData,
+    ops::Add,
+    str::{pattern::ReverseSearcher, CharIndices},
+};
 
 pub struct Enclosures<'s, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> {
     string: &'s str,
@@ -123,7 +128,11 @@ pub trait StrUtil<'s>: Sized {
         end: B,
     ) -> Self::EnclosureIter<'a, A, B>;
 
-    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)> where P::Searcher: ReverseSearcher<'a>, 'a: 's, 's: 'a;
+    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)>
+    where
+        P::Searcher: ReverseSearcher<'a>,
+        'a: 's,
+        's: 'a;
 
     fn maybe_starts_with(self, other: Self) -> Option<Self>;
 }
@@ -145,10 +154,16 @@ impl<'s> StrUtil<'s> for &'s str {
         }
     }
 
-    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)> where P::Searcher: ReverseSearcher<'a>, 'a: 's, 's: 'a {
-        self.char_indices().rev().find_map(|(i, _)| p.is_suffix_of(&self[..i]).then_some(i)).and_then(|i| {
-            Some((p.strip_suffix_of(&self[..i])?, &self[i..]))
-        })
+    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)>
+    where
+        P::Searcher: ReverseSearcher<'a>,
+        'a: 's,
+        's: 'a,
+    {
+        self.char_indices()
+            .rev()
+            .find_map(|(i, _)| p.is_suffix_of(&self[..i]).then_some(i))
+            .and_then(|i| Some((p.strip_suffix_of(&self[..i])?, &self[i..])))
     }
 
     fn maybe_starts_with(self, other: Self) -> Option<Self> {

@@ -400,7 +400,11 @@ pub trait GridLinearSlice<'a>: Sized {
     fn get(&self, i: usize) -> Option<&Self::Output>;
 
     fn iter(&'a self) -> GridLinearIter<Self> {
-        GridLinearIter { slice: self, front: 0, back: self.len() as isize - 1 }
+        GridLinearIter {
+            slice: self,
+            front: 0,
+            back: self.len() as isize - 1,
+        }
     }
 
     fn from_grid(grid: &'a Grid<Self::Output>, i: usize) -> Option<Self>;
@@ -429,7 +433,6 @@ impl<'a, L: GridLinearSlice<'a>> Iterator for GridLinearIter<'a, L> {
         }
     }
 }
-
 
 impl<'a, L: GridLinearSlice<'a>> DoubleEndedIterator for GridLinearIter<'a, L> {
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -701,11 +704,19 @@ impl<T> Grid<T> {
     }
 
     pub fn rows(&self) -> GridLinear<GridRowSlice<T>> {
-        GridLinear { grid: self, front: 0, back: self.height as isize - 1 }
+        GridLinear {
+            grid: self,
+            front: 0,
+            back: self.height as isize - 1,
+        }
     }
 
     pub fn columns(&self) -> GridLinear<GridColumnSlice<T>> {
-        GridLinear { grid: self, front: 0, back: self.width as isize - 1 }
+        GridLinear {
+            grid: self,
+            front: 0,
+            back: self.width as isize - 1,
+        }
     }
 
     pub fn get_row(&self, y: usize) -> Option<GridRowSlice<T>> {
@@ -763,7 +774,12 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn find_path<N: Neighbors>(&self, start: (usize, usize), end: (usize, usize), mut transition: impl FnMut(&T, (usize, usize), &T, (usize, usize)) -> Option<f64>) -> Option<(Vec<(usize, usize)>, f64)> {
+    pub fn find_path<N: Neighbors>(
+        &self,
+        start: (usize, usize),
+        end: (usize, usize),
+        mut transition: impl FnMut(&T, (usize, usize), &T, (usize, usize)) -> Option<f64>,
+    ) -> Option<(Vec<(usize, usize)>, f64)> {
         pathfinding::prelude::astar(
             &start,
             |node| {
@@ -771,13 +787,14 @@ impl<T> Grid<T> {
                 let mut neighbors = Vec::new();
 
                 for n in N::NEIGHBORS {
-                    let res = node.0.checked_add_signed(n.0).zip(node.1.checked_add_signed(n.1)).and_then(|n| {
-                        self.get(n.0, n.1).and_then(|to| {
-                            transition(from, *node, to, n).map(|t| {
-                                (t, n)
-                            })
-                        })
-                    });
+                    let res = node
+                        .0
+                        .checked_add_signed(n.0)
+                        .zip(node.1.checked_add_signed(n.1))
+                        .and_then(|n| {
+                            self.get(n.0, n.1)
+                                .and_then(|to| transition(from, *node, to, n).map(|t| (t, n)))
+                        });
                     if let Some((transition, n)) = res {
                         neighbors.push((n, super::OrderedFloat(transition)));
                     }
@@ -790,12 +807,9 @@ impl<T> Grid<T> {
                 let y = node.1.abs_diff(end.1);
                 super::OrderedFloat(((x * x + y * y) as f64).sqrt())
             },
-            |node| {
-                *node == end
-            },
-        ).map(|(path, cost)| {
-            (path, cost.0)
-        })
+            |node| *node == end,
+        )
+        .map(|(path, cost)| (path, cost.0))
     }
 }
 
@@ -812,7 +826,16 @@ impl Neighbors for Cardinals {
 struct Close;
 
 impl Neighbors for Close {
-    const NEIGHBORS: &'static [(isize, isize)] = &[(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, 1), (0, -1), (1, -1)];
+    const NEIGHBORS: &'static [(isize, isize)] = &[
+        (1, 0),
+        (1, 1),
+        (0, 1),
+        (-1, 1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (1, -1),
+    ];
 }
 
 impl<T: fmt::Display> fmt::Display for Grid<T> {
@@ -942,7 +965,11 @@ impl Grid<bool> {
 
     pub fn parse_word(&self) -> String {
         assert_eq!(self.height, 6, "Can only parse character of height 6");
-        assert_eq!(self.width % 5, 0, "Can only parse characters of width 4, with a space of 1");
+        assert_eq!(
+            self.width % 5,
+            0,
+            "Can only parse characters of width 4, with a space of 1"
+        );
         let l = self.width / 5;
         let mut result = String::with_capacity(l);
         // println!("{}", self.to_map());

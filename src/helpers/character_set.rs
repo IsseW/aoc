@@ -1,5 +1,3 @@
-
-
 #[derive(Default, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct CharacterSet(u32);
 
