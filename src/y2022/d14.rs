@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use itertools::Itertools;
 use vek::Vec2;
 
@@ -38,7 +40,9 @@ fn parse(input: &str, mut min: Vec2<u32>, mut max: Vec2<u32>) -> (Grid<Cell>, Ve
 	(grid, min)
 }
 
-fn simulate(grid: &mut Grid<Cell>, sand_pos: (usize, usize)) -> u32 {
+pub fn solution_1(input: &str) -> String {
+	let (mut grid, min) = parse(input, Vec2::new(u32::MAX, 0), Vec2::zero());
+	let sand_pos = ((500 - min.x) as usize, (0 - min.y) as usize);
 	let mut sand_count = 0;
 	'sim: loop {
 		let mut sand_pos = sand_pos;
@@ -47,7 +51,7 @@ fn simulate(grid: &mut Grid<Cell>, sand_pos: (usize, usize)) -> u32 {
 		}
 		loop {
 			let check_pos = (sand_pos.0, sand_pos.1 + 1);
-			if check_pos.1 >= grid.get_size().1 {
+			if check_pos.1 >= grid.height() {
 				break 'sim;
 			}
 			if matches!(grid[check_pos], Cell::Air) {
@@ -64,7 +68,7 @@ fn simulate(grid: &mut Grid<Cell>, sand_pos: (usize, usize)) -> u32 {
 				break 'sim;
 			}
 			let check_pos = (sand_pos.0 + 1, sand_pos.1 + 1);
-			if check_pos.0 >= grid.get_size().0 {
+			if check_pos.0 >= grid.width() {
 				break 'sim;
 			}
 			if matches!(grid[check_pos], Cell::Air) {
@@ -76,27 +80,24 @@ fn simulate(grid: &mut Grid<Cell>, sand_pos: (usize, usize)) -> u32 {
 		}
 		sand_count += 1;
 	}
-	sand_count
-}
-
-pub fn solution_1(input: &str) -> String {
-	let (mut grid, min) = parse(input, Vec2::new(u32::MAX, 0), Vec2::zero());
-	let sand_pos = ((500 - min.x) as usize, (0 - min.y) as usize);
-	simulate(&mut grid, sand_pos).to_string()
+	sand_count.to_string()
 }
 
 pub fn solution_2(input: &str) -> String {
+	let start = Instant::now();
 	let (mut grid, min) = parse(input, Vec2::new(328, 0), Vec2::new(672, 0));
+	println!("parse: {} μs", start.elapsed().as_micros());
 	let sand_pos = ((500 - min.x) as usize, (0 - min.y) as usize);
 	grid[sand_pos] = Cell::Sand;
 	let mut sand_count = 1;
 
 	let center = sand_pos.0;
 	for y in 1..grid.height() {
+		// Will always be false
 		let mut last_center = false;
-		let mut last_right = matches!(grid[(center - y, y)], Cell::Sand);
+		let mut last_right = false;
 		for x in (center - y)..=(center + y) {
-			let right = matches!(grid[(x + 1, y)], Cell::Sand);
+			let right = matches!(grid[(x + 1, y - 1)], Cell::Sand);
 			if matches!(grid[(x, y)], Cell::Air) {
 				if last_center || last_right || right {
 					grid[(x, y)] = Cell::Sand;
@@ -107,16 +108,6 @@ pub fn solution_2(input: &str) -> String {
 			last_right = right;
 		}
 	}
-
-	let out = grid.to_input(|cell| {
-		match cell {
-			Cell::Air => '.',
-			Cell::Rock => '#',
-			Cell::Sand => 'o',
-		}
-	});
-
-	std::fs::write("dbg.txt", out).unwrap();
 
 	sand_count.to_string()
 }
