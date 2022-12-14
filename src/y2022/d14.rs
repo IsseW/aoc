@@ -16,13 +16,16 @@ enum Cell {
 fn parse(input: &str, mut min: Vec2<u32>, mut max: Vec2<u32>) -> (Grid<Cell>, Vec2<u32>) {
 	let lines = input.lines().map(|line| {
 		line.split(" -> ").map(|coord| {
-			let (x, y): (u32, u32) = strp::scan!(coord => "{},{}");
+			let (x, y) = coord.split_once(',').unwrap();
+			let (x, y): (u32, u32) = (x.parse().unwrap(), y.parse().unwrap());
 			let res = Vec2::new(x, y);
 			min = res.map2(min, |a, b| a.min(b));
 			max = res.map2(max, |a, b| a.max(b));
 			res
 		}).collect_vec()
 	}).collect_vec();
+
+	let start = Instant::now();
 	let size = max - min + 1;
 	let mut grid = Grid::new(size.x as usize, size.y as usize + 1);
 
