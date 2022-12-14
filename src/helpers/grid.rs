@@ -524,10 +524,50 @@ impl<'a, S: GridLinearSlice<'a>> DoubleEndedIterator for GridLinear<'a, S> {
     }
 }
 
+pub struct GridLinearMut<'a, S: GridLinearSliceMut<'a>> {
+    grid: &'a mut Grid<S::Output>,
+    front: isize,
+    back: isize,
+}
+
+impl<'a, S: GridLinearSliceMut<'a>> Iterator for GridLinearMut<'a, S> {
+    type Item = S;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let l = S::from_grid_mut(unsafe { &mut *(self.grid as *mut _) }, self.front.try_into().ok()?);
+            self.front += 1;
+            l
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, S: GridLinearSliceMut<'a>> DoubleEndedIterator for GridLinearMut<'a, S> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let l = S::from_grid_mut(unsafe { &mut *(self.grid as *mut _) }, self.back.try_into().ok()?);
+            self.back -= 1;
+            l
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct GridRowSlice<'a, T> {
     grid: &'a Grid<T>,
     y: usize,
+}
+
+impl<'a, T> Index<usize> for GridRowSlice<'a, T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.get(index).unwrap()
+    }
 }
 
 impl<'a, T> GridLinearSlice<'a> for GridRowSlice<'a, T> {
@@ -548,6 +588,20 @@ impl<'a, T> GridLinearSlice<'a> for GridRowSlice<'a, T> {
 pub struct GridRowSliceMut<'a, T> {
     grid: &'a mut Grid<T>,
     y: usize,
+}
+
+impl<'a, T> Index<usize> for GridRowSliceMut<'a, T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.get(index).unwrap()
+    }
+}
+
+impl<'a, T> IndexMut<usize> for GridRowSliceMut<'a, T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.get_mut(index).unwrap()
+    }
 }
 
 impl<'a, T> GridLinearSlice<'a> for GridRowSliceMut<'a, T> {
@@ -581,6 +635,14 @@ pub struct GridColumnSlice<'a, T> {
     x: usize,
 }
 
+impl<'a, T> Index<usize> for GridColumnSlice<'a, T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.get(index).unwrap()
+    }
+}
+
 impl<'a, T> GridLinearSlice<'a> for GridColumnSlice<'a, T> {
     type Output = T;
     fn len(&self) -> usize {
@@ -599,6 +661,20 @@ impl<'a, T> GridLinearSlice<'a> for GridColumnSlice<'a, T> {
 pub struct GridColumnSliceMut<'a, T> {
     grid: &'a mut Grid<T>,
     x: usize,
+}
+
+impl<'a, T> Index<usize> for GridColumnSliceMut<'a, T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.get(index).unwrap()
+    }
+}
+
+impl<'a, T> IndexMut<usize> for GridColumnSliceMut<'a, T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.get_mut(index).unwrap()
+    }
 }
 
 impl<'a, T> GridLinearSlice<'a> for GridColumnSliceMut<'a, T> {
@@ -785,12 +861,28 @@ impl<T> Grid<T> {
             back: self.height as isize - 1,
         }
     }
+    
+    pub fn rows_mut(&mut self) -> GridLinearMut<GridRowSliceMut<T>> {
+        GridLinearMut {
+            front: 0,
+            back: self.height as isize - 1,
+            grid: self,
+        }
+    }
 
     pub fn columns(&self) -> GridLinear<GridColumnSlice<T>> {
         GridLinear {
             grid: self,
             front: 0,
             back: self.width as isize - 1,
+        }
+    }
+    
+    pub fn columns_mut(&mut self) -> GridLinearMut<GridColumnSliceMut<T>> {
+        GridLinearMut {
+            front: 0,
+            back: self.width as isize - 1,
+            grid: self,
         }
     }
 
