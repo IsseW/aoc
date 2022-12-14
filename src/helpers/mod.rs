@@ -22,7 +22,7 @@ pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
         _ => {}
     }
 
-    while *i < chars.len() && chars[*i].is_digit(10) {
+    while *i < chars.len() && chars[*i].is_ascii_digit() {
         t.push(chars[*i]);
         *i += 1;
     }
@@ -30,10 +30,16 @@ pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
     t.parse::<T>().expect("Failed to parse number")
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct OrderedFloat(pub f64);
 
 impl Eq for OrderedFloat {}
+
+impl PartialOrd for OrderedFloat {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
 
 impl Ord for OrderedFloat {
     fn cmp(&self, other: &OrderedFloat) -> std::cmp::Ordering {
@@ -114,7 +120,7 @@ impl<'s: 'a, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> Iterator
             self.chars = chars;
         }
 
-        Some(self.start.strip_prefix_of(&self.string[s..e])?)
+        self.start.strip_prefix_of(&self.string[s..e])
     }
 }
 
@@ -133,8 +139,6 @@ pub trait StrUtil<'s>: Sized {
         P::Searcher: ReverseSearcher<'a>,
         'a: 's,
         's: 'a;
-
-    fn maybe_starts_with(self, other: Self) -> Option<Self>;
 }
 
 impl<'s> StrUtil<'s> for &'s str {
@@ -165,14 +169,6 @@ impl<'s> StrUtil<'s> for &'s str {
             .find_map(|(i, _)| p.is_suffix_of(&self[..i]).then_some(i))
             .and_then(|i| Some((p.strip_suffix_of(&self[..i])?, &self[i..])))
     }
-
-    fn maybe_starts_with(self, other: Self) -> Option<Self> {
-        if self.starts_with(other) {
-            Some(&self[other.len()..])
-        } else {
-            None
-        }
-    }
 }
 
 #[macro_export]
@@ -181,9 +177,9 @@ macro_rules! match_starts_with {
         {
             let _match = $string;
             'match_block: {
-                use crate::helpers::StrUtil;
+                use $crate::helpers::StrUtil;
                 $(
-                    if let Some($ident) = _match.maybe_starts_with($pat) {
+                    if let Some($ident) = _match.strip_prefix($pat) {
                         let res = $block;
                         break 'match_block res;
                     }

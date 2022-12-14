@@ -52,7 +52,7 @@ fn create_year_folder(year: u32) {
     let code_folder = format!("./src/y{}", year);
     let input_folder = format!("./input/y{}", year);
     fs::create_dir_all(code_folder.clone()).expect("Could not create folder");
-    fs::create_dir_all(input_folder.clone()).expect("Could not create folder");
+    fs::create_dir_all(input_folder).expect("Could not create folder");
     let mut include = String::new();
     for day in 1..=25 {
         let path = format!("{}/d{}.rs", code_folder.clone(), day);
@@ -75,7 +75,7 @@ fn create_year_folder(year: u32) {
     }
 
     fs::write(
-        format!("{}/mod.rs", code_folder.clone()),
+        format!("{}/mod.rs", code_folder),
         include.as_bytes(),
     )
     .expect("Could not create file");
@@ -104,7 +104,7 @@ fn run_day(year: u32, day: u8) -> DayResult {
     let index = (year as usize - 2015) * 25 + day as usize - 1;
     let start = Instant::now();
     let input = fs::read_to_string(format!("./input/y{}/d{}", year, day)).unwrap();
-    let input = input.trim().replace("\r", "");
+    let input = input.trim().replace('\r', "");
     let read_time = start.elapsed().as_secs_f64();
 
     let functions = [PART_1[index], PART_2[index]];
@@ -156,17 +156,16 @@ fn main() {
             let mut bytes = arg.bytes();
             let first = bytes.next();
             if let Some(first) = first {
-                if first == '-' as u8 {
-                    match bytes.next().map(|b| b as char) {
-                        Some('c') => state.create = true,
-                        _ => {}
+                if first == b'-' {
+                    if matches!(bytes.next().map(|b| b as char), Some('c')) {
+                        state.create = true
                     }
-                } else if '0' as u8 <= first && first <= '9' as u8 {
-                    let mut number = (first - '0' as u8) as u32;
-                    while let Some(byte) = bytes.next() {
-                        if '0' as u8 <= byte && byte <= '9' as u8 {
+                } else if (b'0'..=b'9').contains(&first) {
+                    let mut number = (first - b'0') as u32;
+                    for byte in bytes {
+                        if (b'0'..=b'9').contains(&byte) {
                             number *= 10;
-                            number += (byte - '0' as u8) as u32;
+                            number += (byte - b'0') as u32;
                         } else {
                             break;
                         }

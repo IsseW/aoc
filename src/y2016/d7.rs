@@ -29,12 +29,9 @@ pub fn solution_1(input: &str) -> String {
     input
         .lines()
         .filter(|line| {
-            let w = line.split(|c| match c {
-                '[' | ']' => true,
-                _ => false,
-            });
-            let within = w.clone().skip(1).step_by(2).any(|str| is_abba(str));
-            let outside = w.step_by(2).any(|str| is_abba(str));
+            let w = line.split(|c| matches!(c, '[' | ']'));
+            let within = w.clone().skip(1).step_by(2).any(is_abba);
+            let outside = w.step_by(2).any(is_abba);
             !within && outside
         })
         .count()
@@ -45,24 +42,21 @@ pub fn solution_2(input: &str) -> String {
     input
         .lines()
         .filter(|line| {
-            let w = line.split(|c| match c {
-                '[' | ']' => true,
-                _ => false,
-            });
+            let w = line.split(|c| matches!(c, '[' | ']'));
             let inside = w
                 .clone()
                 .skip(1)
                 .step_by(2)
-                .map(|str| collect_aba(str))
-                .reduce(|a, b| a.union(&b).map(|a| *a).collect())
+                .map(collect_aba)
+                .reduce(|a, b| a.union(&b).copied().collect())
                 .unwrap();
             let outside = w
                 .step_by(2)
-                .map(|str| collect_aba(str))
-                .reduce(|a, b| a.union(&b).map(|a| *a).collect())
+                .map(collect_aba)
+                .reduce(|a, b| a.union(&b).copied().collect())
                 .unwrap()
                 .iter()
-                .map(|&(a, b)| (b, a))
+                .copied()
                 .collect();
             inside.intersection(&outside).count() > 0
         })

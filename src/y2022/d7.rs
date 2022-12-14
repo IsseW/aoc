@@ -70,7 +70,7 @@ fn parse_dir<'a>(lines: &mut Lines<'a>) -> HashMap<&'a str, Entry<'a>> {
 	}
 }
 
-fn parse<'a>(input: &'a str) -> Entry<'a> {
+fn parse(input: &str) -> Entry {
 	let mut lines = input.lines();
 	// Skip root node
 	lines.next().unwrap();

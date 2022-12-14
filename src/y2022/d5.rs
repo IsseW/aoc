@@ -9,13 +9,13 @@ fn parse_stacks(input: &str) -> Vec<Vec<char>> {
 	for line in input.lines().rev().skip(1) {
 		for (i, c) in line.find_enclosures('[', ']').enumerate() {
 			let offset = c.as_ptr() as usize - line.as_ptr() as usize;
-			stacks.entry(offset).or_insert(Vec::new()).push(c.chars().next().unwrap());
+			stacks.entry(offset).or_default().push(c.chars().next().unwrap());
 		}
 	}
 	stacks.values().cloned().collect()
 }
 
-fn parse_code<'a>(input: &'a str) -> impl Iterator<Item = (usize, usize, usize)> + 'a {
+fn parse_code(input: &str) -> impl Iterator<Item = (usize, usize, usize)> + '_ {
 	input.lines().map(|line| {
 		let (n, from, to): (u32, u32, u32) = strp::scan!(line => "move {} from {} to {}");
 		(n as usize, from as usize - 1, to as usize - 1)

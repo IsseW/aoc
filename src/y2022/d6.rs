@@ -3,7 +3,7 @@ use itertools::Itertools;
 
 fn solve(input: &str, n: usize) -> String {
 	let (i, _) = input.chars().slide(n).enumerate().find(|(i, f)| {
-		f.into_iter().all_unique()
+		f.iter().all_unique()
 	}).unwrap();
 	(i + n).to_string()
 }

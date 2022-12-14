@@ -7,8 +7,8 @@ pub fn solution_1(input: &str) -> String {
             Value::Bool(_) => 0,
             Value::Number(num) => num.as_i64().unwrap_or(0),
             Value::String(_) => 0,
-            Value::Array(array) => array.iter().map(|v| count(v)).sum::<i64>(),
-            Value::Object(object) => object.values().map(|value| count(value)).sum::<i64>(),
+            Value::Array(array) => array.iter().map(count).sum::<i64>(),
+            Value::Object(object) => object.values().map(count).sum::<i64>(),
         }
     }
     let input: Value = serde_json::from_str(input).unwrap();
@@ -22,7 +22,7 @@ pub fn solution_2(input: &str) -> String {
             Value::Bool(_) => 0,
             Value::Number(num) => num.as_i64().unwrap_or(0),
             Value::String(_) => 0,
-            Value::Array(array) => array.iter().map(|v| count(v)).sum::<i64>(),
+            Value::Array(array) => array.iter().map(count).sum::<i64>(),
             Value::Object(object) => {
                 if object
                     .values()
@@ -30,7 +30,7 @@ pub fn solution_2(input: &str) -> String {
                 {
                     0
                 } else {
-                    object.values().map(|value| count(value)).sum::<i64>()
+                    object.values().map(count).sum::<i64>()
                 }
             }
         }

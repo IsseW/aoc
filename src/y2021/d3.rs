@@ -6,16 +6,15 @@ pub fn solution_1(input: &str) -> String {
     input.lines().for_each(|line| {
         num_lines += 1;
         for (i, char) in line.chars().enumerate() {
-            match char {
-                '1' => bits[i] += 1,
-                _ => {}
+            if char == '1' {
+                bits[i] += 1;
             }
         }
     });
     let mut a = 0;
     let mut b = 0;
-    for i in 0..12 {
-        if bits[i] > num_lines / 2 {
+    for (i, bit) in bits.iter().enumerate() {
+        if *bit > num_lines / 2 {
             a |= 1 << (11 - i);
         } else {
             b |= 1 << (11 - i);
@@ -32,11 +31,8 @@ pub fn solution_2(input: &str) -> String {
         num_lines += 1;
         let mut local_bits = [false; LEN];
         for (i, char) in line.chars().enumerate() {
-            match char {
-                '1' => {
-                    local_bits[i] = true;
-                }
-                _ => {}
+            if char == '1' {
+                local_bits[i] = true;
             }
         }
         numbers.push(local_bits);
@@ -79,8 +75,8 @@ pub fn solution_2(input: &str) -> String {
     let mut a = 0;
     let mut b = 0;
     for i in 0..LEN {
-        a |= if numbers[0][i] { 1 } else { 0 } << (LEN - 1 - i);
-        b |= if numbers2[0][i] { 1 } else { 0 } << (LEN - 1 - i);
+        a |= i32::from(numbers[0][i]) << (LEN - 1 - i);
+        b |= i32::from(numbers2[0][i]) << (LEN - 1 - i);
     }
     (a * b).to_string()
 }

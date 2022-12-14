@@ -19,7 +19,7 @@ fn parse_lines(input: &str) -> Vec<Line> {
         .collect::<Vec<_>>()
 }
 
-fn find_grid_size(lines: &Vec<Line>) -> usize {
+fn find_grid_size(lines: &[Line]) -> usize {
     (lines
         .iter()
         .map(|l| l.0 .0.max(l.1 .1).max(l.1 .0.max(l.1 .1)))

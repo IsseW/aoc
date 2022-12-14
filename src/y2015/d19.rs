@@ -5,7 +5,6 @@ use rand::prelude::IteratorRandom;
 pub fn solution_1(input: &str) -> String {
     let (rep, molecule) = input
         .split_once("\n\n")
-        .or(input.split_once("\r\n\r\n"))
         .unwrap();
     let molecule = molecule.chars().collect_vec();
     let rep: Vec<(&str, &str)> = rep
@@ -48,7 +47,6 @@ pub fn solution_1(input: &str) -> String {
 pub fn solution_2(input: &str) -> String {
     let (rep, org_molecule) = input
         .split_once("\n\n")
-        .or(input.split_once("\r\n\r\n"))
         .unwrap();
 
     let mut molecule = org_molecule.to_string();

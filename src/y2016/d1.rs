@@ -7,7 +7,7 @@ pub fn solution_1(input: &str) -> String {
             let mut chars = instr.chars();
             let dir = chars.next().unwrap();
 
-            let amount = i32::from_str_radix(chars.collect::<String>().as_str(), 10).unwrap();
+            let amount: i32 = chars.collect::<String>().parse().unwrap();
 
             (dir, amount)
         })
@@ -43,7 +43,7 @@ pub fn solution_2(input: &str) -> String {
         let mut chars = instr.chars();
         let dir = chars.next().unwrap();
 
-        let amount = i32::from_str_radix(chars.collect::<String>().as_str(), 10).unwrap();
+        let amount =  chars.collect::<String>().parse().unwrap();
 
         (dir, amount)
     }) {

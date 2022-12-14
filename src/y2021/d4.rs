@@ -9,12 +9,11 @@ fn parse_boards(input: &str, map: &impl Fn(u8) -> u8) -> Vec<Grid<u8>> {
         .map(|board| {
             board
                 .lines()
-                .map(|line| {
+                .flat_map(|line| {
                     line.split_whitespace()
                         .filter_map(|num| num.parse::<u8>().ok())
                         .map(map)
                 })
-                .flatten()
                 .collect_rows(BOARD_SIZE)
         })
         .collect::<Vec<_>>()

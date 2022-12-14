@@ -1,7 +1,7 @@
 use integer_sqrt::IntegerSquareRoot;
 
 pub fn solution_1(input: &str) -> String {
-    let input = u128::from_str_radix(input, 10).unwrap();
+    let input = input.parse().unwrap();
     pub fn count_divisors(number: u128) -> u128 {
         let sqrt = number.integer_sqrt();
         let mut count = 10 + number * 10;
@@ -26,7 +26,7 @@ pub fn solution_1(input: &str) -> String {
 }
 
 pub fn solution_2(input: &str) -> String {
-    let input = u128::from_str_radix(input, 10).unwrap();
+    let input = input.parse().unwrap();
     pub fn count_divisors(number: u128) -> u128 {
         let mut count = number * 11;
         for i in 2..=50 {

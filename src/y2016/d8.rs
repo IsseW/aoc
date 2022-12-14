@@ -23,7 +23,7 @@ fn parse_screen(input: &str) -> Grid<bool> {
                         .unwrap();
                     parts.next().unwrap();
                     let by = parts.next().unwrap().parse::<i32>().unwrap();
-                    let r: Vec<_> = screen.get_row(row).unwrap().iter().map(|b| *b).collect();
+                    let r: Vec<_> = screen.get_row(row).unwrap().iter().copied().collect();
                     let mut row = screen.get_row_mut(row).unwrap();
                     let l = row.len() as i32;
                     for i in 0..l {
@@ -44,7 +44,7 @@ fn parse_screen(input: &str) -> Grid<bool> {
                         .get_column(column)
                         .unwrap()
                         .iter()
-                        .map(|b| *b)
+                        .copied()
                         .collect();
                     let mut column = screen.get_column_mut(column).unwrap();
                     let l = column.len() as i32;

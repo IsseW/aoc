@@ -20,7 +20,7 @@ impl Instruction {
             }
         }
         fn read_offset(split: &mut Split<&str>) -> i32 {
-            i32::from_str_radix(split.next().unwrap(), 10).unwrap()
+            split.next().unwrap().parse().unwrap()
         }
         let (instr, args) = input.split_once(' ').unwrap();
         let mut args = args.split(", ");
@@ -48,7 +48,7 @@ impl VM {
         Self {
             program: input
                 .lines()
-                .map(|line| Instruction::from_str(line))
+                .map(Instruction::from_str)
                 .collect(),
             ..Default::default()
         }

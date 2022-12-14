@@ -73,7 +73,7 @@ fn run_bots(input: &str) -> (HashMap<u32, HashSet<u32>>, HashMap<u32, HashSet<u3
                     .get_mut(&transfer.from)
                     .unwrap()
                     .iter()
-                    .map(|&v| v)
+                    .copied()
                     .min()
                     .unwrap();
                 match transfer.low {
@@ -103,7 +103,7 @@ fn run_bots(input: &str) -> (HashMap<u32, HashSet<u32>>, HashMap<u32, HashSet<u3
                     .get_mut(&transfer.from)
                     .unwrap()
                     .iter()
-                    .map(|&v| v)
+                    .copied()
                     .max()
                     .unwrap();
                 match transfer.high {
@@ -153,7 +153,7 @@ pub fn solution_2(input: &str) -> String {
         .iter()
         .chain(outputs[&1].iter())
         .chain(outputs[&2].iter())
-        .map(|&v| v)
+        .copied()
         .reduce(|a, b| a * b)
         .unwrap()
         .to_string()

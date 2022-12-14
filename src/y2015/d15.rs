@@ -4,16 +4,11 @@ fn parse(input: &str) -> Vec<[i64; 5]> {
         .map(|line| {
             let mut split = line.split(',');
             [
-                i64::from_str_radix(split.next().unwrap().split_whitespace().nth(2).unwrap(), 10)
-                    .unwrap(),
-                i64::from_str_radix(split.next().unwrap().split_whitespace().nth(1).unwrap(), 10)
-                    .unwrap(),
-                i64::from_str_radix(split.next().unwrap().split_whitespace().nth(1).unwrap(), 10)
-                    .unwrap(),
-                i64::from_str_radix(split.next().unwrap().split_whitespace().nth(1).unwrap(), 10)
-                    .unwrap(),
-                i64::from_str_radix(split.next().unwrap().split_whitespace().nth(1).unwrap(), 10)
-                    .unwrap(),
+                split.next().unwrap().split_whitespace().nth(2).unwrap().parse().unwrap(),
+                split.next().unwrap().split_whitespace().nth(1).unwrap().parse().unwrap(),
+                split.next().unwrap().split_whitespace().nth(1).unwrap().parse().unwrap(),
+                split.next().unwrap().split_whitespace().nth(1).unwrap().parse().unwrap(),
+                split.next().unwrap().split_whitespace().nth(1).unwrap().parse().unwrap(),
             ]
         })
         .collect()

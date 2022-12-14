@@ -32,8 +32,8 @@ impl SwitchMode {
 fn parse_coords(string: &str) -> (usize, usize) {
     let split = string.split_once(',').unwrap();
     (
-        usize::from_str_radix(split.0, 10).unwrap(),
-        usize::from_str_radix(split.1, 10).unwrap(),
+        split.0.parse().unwrap(),
+        split.1.parse().unwrap(),
     )
 }
 
@@ -46,10 +46,7 @@ pub fn solution_1(input: &str) -> String {
         let mut split = line.split_whitespace();
 
         let mode = match split.next() {
-            Some("turn") => SwitchMode::Turn(match split.next() {
-                Some("on") => true,
-                _ => false,
-            }),
+            Some("turn") => SwitchMode::Turn(matches!(split.next(), Some("on"))),
             _ => SwitchMode::Toggle,
         };
         let start = parse_coords(split.next().unwrap());
@@ -74,10 +71,7 @@ pub fn solution_2(input: &str) -> String {
         let mut split = line.split_whitespace();
 
         let mode = match split.next() {
-            Some("turn") => SwitchMode::Turn(match split.next() {
-                Some("on") => true,
-                _ => false,
-            }),
+            Some("turn") => SwitchMode::Turn(matches!(split.next(), Some("on"))),
             _ => SwitchMode::Toggle,
         };
         let start = parse_coords(split.next().unwrap());

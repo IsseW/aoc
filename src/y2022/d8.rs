@@ -9,13 +9,11 @@ pub fn solution_1(input: &str) -> String {
 	let (width, height) = grid.get_size();
 	for (x, col) in grid.columns().enumerate() {
 		let mut last = -1;
-		let mut y = 0;
-		for cell in col.iter() {
+		for (y, cell) in col.iter().enumerate() {
 			if *cell > last {
 				set.insert((x, y));
 				last = *cell;
 			}
-			y += 1;
 		}
 
 		let mut last = -1;
@@ -31,13 +29,11 @@ pub fn solution_1(input: &str) -> String {
 
 	for (y, row) in grid.rows().enumerate() {
 		let mut last = -1;
-		let mut x = 0;
-		for cell in row.iter() {
+		for (x, cell) in row.iter().enumerate() {
 			if *cell > last {
 				set.insert((x, y));
 				last = *cell;
 			}
-			x += 1;
 		}
 
 		let mut last = -1;

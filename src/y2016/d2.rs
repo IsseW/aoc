@@ -2,7 +2,7 @@ use crate::helpers::*;
 
 pub fn solution_1(input: &str) -> String {
     let grid = ('1'..='9').collect_grid_f(3, 3);
-    let mut walker = GridWalker::clamped(&grid);
+    let mut walker = GridWalker::<_, ()>::clamped(&grid);
     walker.tp(1, 1);
     let mut code = String::new();
     for line in input.lines() {
@@ -31,7 +31,7 @@ pub fn solution_2(input: &str) -> String {
     .into_grid();
     let mut walker = GridWalker::clamped(&grid);
     walker.tp(0, 2);
-    walker.collide(|tile| tile.is_none());
+    walker.collider(|tile: &Option<char>| tile.is_none());
     let mut code = String::new();
     for line in input.lines() {
         for char in line.chars() {

@@ -21,7 +21,7 @@ impl Instr {
 	}
 }
 
-fn parse<'a>(input: &'a str) -> impl Iterator<Item = Instr> + 'a {
+fn parse(input: &str) -> impl Iterator<Item = Instr> + '_ {
 	input.lines().map(|line| {
 		if line == "noop" {
 			Instr::Noop

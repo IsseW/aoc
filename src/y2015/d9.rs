@@ -9,7 +9,7 @@ fn parse(input: &str) -> (HashSet<NodeId>, HashMap<NodeId, HashMap<NodeId, u32>>
     input.lines().for_each(|line| {
         if let Some((from, _, to, _, distance)) = line.split_whitespace().collect_tuple() {
             let (from, to) = (NodeId::new(from), NodeId::new(to));
-            let distance = u32::from_str_radix(distance, 10).unwrap();
+            let distance = distance.parse().unwrap();
 
             places.insert(from);
             places.insert(to);

@@ -3,7 +3,7 @@ use itertools::Itertools;
 fn parse(input: &str) -> (Vec<u64>, u64) {
     let weights = input
         .lines()
-        .map(|line| u64::from_str_radix(line, 10).unwrap())
+        .map(|line| line.parse().unwrap())
         .collect_vec();
     let total = weights.iter().sum::<u64>();
     (weights, total)

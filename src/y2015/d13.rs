@@ -17,7 +17,7 @@ fn parse(input: &str) -> HashMap<NodeId, Node> {
         let gain = match split.next().unwrap() {
             "lose" => -1,
             _ => 1,
-        } * i32::from_str_radix(split.next().unwrap(), 10).unwrap();
+        } * split.next().unwrap().parse::<i32>().unwrap();
         split.advance_by(6).unwrap();
         let o_name = split.next().unwrap().trim_end_matches(|c| c == '.');
         let id = NodeId::new(name);

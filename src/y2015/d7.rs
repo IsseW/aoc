@@ -6,7 +6,7 @@ struct WireId(u16);
 impl WireId {
     fn new(id: &str) -> Self {
         let bytes = id.trim().as_bytes();
-        Self(((*bytes.get(0).unwrap_or(&0) as u16) << 8) | (*bytes.get(1).unwrap_or(&0) as u16))
+        Self(((*bytes.first().unwrap_or(&0) as u16) << 8) | (*bytes.get(1).unwrap_or(&0) as u16))
     }
 }
 
@@ -18,7 +18,7 @@ enum Input {
 
 impl Input {
     fn new(string: &str) -> Self {
-        if let Ok(num) = u16::from_str_radix(string, 10) {
+        if let Ok(num) = string.parse() {
             Self::Number(num)
         } else {
             Self::Wire(WireId::new(string))
@@ -27,7 +27,7 @@ impl Input {
 
     fn get_value(&self, map: &HashMap<WireId, Wire>) -> Option<u16> {
         match self {
-            Input::Wire(id) => map.get(id).map(|w| w.value).flatten(),
+            Input::Wire(id) => map.get(id).and_then(|w| w.value),
             Input::Number(n) => Some(*n),
         }
     }
@@ -53,11 +53,11 @@ impl Operator {
                 Some("OR") => Self::Or(Input::new(id), Input::new(split.next().unwrap())),
                 Some("LSHIFT") => Self::LShift(
                     Input::new(id),
-                    u8::from_str_radix(split.next().unwrap(), 10).unwrap(),
+                    split.next().unwrap().parse().unwrap(),
                 ),
                 Some("RSHIFT") => Self::RShift(
                     Input::new(id),
-                    u8::from_str_radix(split.next().unwrap(), 10).unwrap(),
+                    split.next().unwrap().parse().unwrap(),
                 ),
                 None => Self::Number(Input::new(id)),
                 _ => panic!(),
@@ -71,12 +71,10 @@ impl Operator {
             Operator::Not(a) => a.get_value(map).map(|v| !v),
             Operator::Or(a, b) => a
                 .get_value(map)
-                .map(|a| b.get_value(map).map(|b| a | b))
-                .flatten(),
+                .and_then(|a| b.get_value(map).map(|b| a | b)),
             Operator::And(a, b) => a
                 .get_value(map)
-                .map(|a| b.get_value(map).map(|b| a & b))
-                .flatten(),
+                .and_then(|a| b.get_value(map).map(|b| a & b)),
             Operator::LShift(a, v) => a.get_value(map).map(|val| val << v),
             Operator::RShift(a, v) => a.get_value(map).map(|val| val >> v),
             Operator::Number(v) => v.get_value(map),
@@ -111,7 +109,7 @@ fn parse(input: &str) -> HashMap<WireId, Wire> {
 
 fn run_simulation(map: &HashMap<WireId, Wire>) -> u16 {
     let mut map = (*map).clone();
-    let keys: Vec<WireId> = map.keys().map(|w| *w).collect();
+    let keys: Vec<WireId> = map.keys().copied().collect();
     let a_id = WireId::new("a");
     while map[&a_id].value.is_none() {
         for k in &keys {

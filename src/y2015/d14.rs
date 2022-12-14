@@ -6,19 +6,18 @@ pub fn solution_1(input: &str) -> String {
         .map(|line| {
             let mut split = line.split_whitespace();
             split.advance_by(3).unwrap();
-            let speed = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let speed: u32 = split.next().unwrap().parse().unwrap();
             split.advance_by(2).unwrap();
-            let time = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let time: u32 = split.next().unwrap().parse().unwrap();
             split.advance_by(6).unwrap();
-            let rest = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let rest: u32 = split.next().unwrap().parse().unwrap();
 
             let cycle = time + rest;
             let run_part = time as f64 / cycle as f64;
             let cycles = RACE_TIME as f64 / cycle as f64;
             let run_cycles = cycles.floor() + (cycles.fract() / run_part).min(1.);
 
-            let distance = (speed as f64 * time as f64 * run_cycles).round() as u32;
-            distance
+            (speed as f64 * time as f64 * run_cycles).round() as u32
         })
         .max()
         .unwrap()
@@ -48,11 +47,11 @@ pub fn solution_2(input: &str) -> String {
         .map(|line| {
             let mut split = line.split_whitespace();
             split.advance_by(3).unwrap();
-            let speed = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let speed = split.next().unwrap().parse().unwrap();
             split.advance_by(2).unwrap();
-            let run_time = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let run_time = split.next().unwrap().parse().unwrap();
             split.advance_by(6).unwrap();
-            let rest_time = u32::from_str_radix(split.next().unwrap(), 10).unwrap();
+            let rest_time = split.next().unwrap().parse().unwrap();
             Reindeer {
                 speed,
                 rest_time,

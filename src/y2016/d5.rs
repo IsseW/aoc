@@ -10,8 +10,8 @@ pub fn solution_1(input: &str) -> String {
         let hash = ctx.compute();
         if hash[0] == 0x00 && hash[1] == 0x00 && hash[2] <= 0x0F {
             result.push(match hash[2] & 0x0F {
-                n @ 0x00..=0x09 => ('0' as u8 + n) as char,
-                n => ('a' as u8 + (n - 0x0A)) as char,
+                n @ 0x00..=0x09 => (b'0' + n) as char,
+                n => (b'a' + (n - 0x0A)) as char,
             });
         }
         i += 1;
@@ -41,8 +41,8 @@ pub fn solution_2(input: &str) -> String {
     result
         .iter()
         .map(|byte| match byte {
-            n @ 0x00..=0x09 => ('0' as u8 + n) as char,
-            n => ('a' as u8 + (n - 0x0A)) as char,
+            n @ 0x00..=0x09 => (b'0' + n) as char,
+            n => (b'a' + (n - 0x0A)) as char,
         })
         .collect()
 }

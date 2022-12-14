@@ -54,8 +54,7 @@ impl State {
                 self.floors[self.current]
                     .iter()
                     .combinations(amount)
-                    .map(|combination| vec![(-1, combination.clone()), (1, combination)])
-                    .flatten()
+                    .flat_map(|combination| vec![(-1, combination.clone()), (1, combination)])
                     .par_bridge()
                     .filter(move |(dir, combination)| {
                         if self.current == 0 && *dir == -1 || self.current == 3 && *dir == 1 {
@@ -118,7 +117,7 @@ impl State {
                         new_state.floors[self.current]
                             .drain_filter(|&mut thing| combination.iter().any(|&&t| t == thing));
                         new_state.floors[new_state.current]
-                            .extend(combination.iter().map(|t| t.clone()));
+                            .extend(combination.iter().copied());
                         new_state
                     })
             })
@@ -163,7 +162,7 @@ impl fmt::Display for State {
 fn get_start_state(input: &str) -> State {
     let mut floors = [Vec::new(), Vec::new(), Vec::new(), Vec::new()];
     input.lines().enumerate().for_each(|(floor, line)| {
-        for part in line.split(", ").map(|s| s.split(" and ")).flatten() {
+        for part in line.split(", ").flat_map(|s| s.split(" and ")) {
             let mut p = part.trim_end_matches('.').split_whitespace().rev();
             match p.next() {
                 Some("generator") => {
@@ -199,11 +198,10 @@ pub fn solution_1(input: &str) -> String {
 
     let mut cached_states = Cache::new();
 
-    while open.len() > 0 {
+    while !open.is_empty() {
         let (closest_state, steps, left) = open
             .iter()
-            .filter(|x| x.len() > 0)
-            .next()
+            .find(|x| !x.is_empty())
             .unwrap()
             .iter()
             .next()
@@ -215,8 +213,7 @@ pub fn solution_1(input: &str) -> String {
         }
 
         open.iter_mut()
-            .filter(|x| x.len() > 0)
-            .next()
+            .find(|x| !x.is_empty())
             .unwrap()
             .remove(&closest_state);
         open_o.remove(&closest_state);
@@ -237,7 +234,7 @@ pub fn solution_1(input: &str) -> String {
                     let d = entry.0 + entry.1;
                     let i = d - dis;
                     if i < MAX_DISTANCE {
-                        open[i].insert(state, entry.clone());
+                        open[i].insert(state, *entry);
                     }
                 }
             }

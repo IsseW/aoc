@@ -30,7 +30,7 @@ pub fn solution_2(input: &str) -> String {
                 Some(None)
             }
         })
-        .filter_map(|index| index)
+        .flatten()
         .next()
         .unwrap()
         .to_string()

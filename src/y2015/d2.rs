@@ -7,7 +7,7 @@ pub fn solution_1(input: &str) -> String {
         .map(|present| {
             let split: (u32, u32, u32) = present
                 .split('x')
-                .map(|side| u32::from_str_radix(side, 10).unwrap())
+                .map(|side| side.parse::<u32>().unwrap())
                 .collect_tuple()
                 .unwrap();
             let sides: [u32; 3] = [split.0 * split.1, split.0 * split.2, split.1 * split.2];
@@ -24,7 +24,7 @@ pub fn solution_2(input: &str) -> String {
         .map(|present| {
             let mut iter = present
                 .split('x')
-                .map(|side| u32::from_str_radix(side, 10).unwrap());
+                .map(|side| side.parse::<u32>().unwrap());
             let split = [
                 iter.next().unwrap(),
                 iter.next().unwrap(),

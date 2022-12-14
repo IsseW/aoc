@@ -13,7 +13,7 @@ impl Entity {
     fn from_str(input: &str) -> Self {
         let mut lines = input.lines();
         fn latter_u32(input: &str) -> u32 {
-            u32::from_str_radix(input.split_once(": ").unwrap().1, 10).unwrap()
+            input.split_once(": ").unwrap().1.parse().unwrap()
         }
 
         Self {

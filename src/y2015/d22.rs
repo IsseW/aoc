@@ -15,7 +15,7 @@ impl Entity {
     fn from_str(input: &str) -> Self {
         let mut lines = input.lines();
         fn latter_i32(input: &str) -> i32 {
-            i32::from_str_radix(input.split_once(": ").unwrap().1, 10).unwrap()
+            input.split_once(": ").unwrap().1.parse().unwrap()
         }
 
         Self {
@@ -104,15 +104,13 @@ enum EffectKind {
 
 impl EffectKind {
     fn on_start(&self, e: &mut Entity) {
-        match self {
-            EffectKind::Shield => e.armor += 7,
-            _ => {}
+        if matches!(self, EffectKind::Shield) {
+            e.armor += 7
         }
     }
     fn on_end(&self, e: &mut Entity) {
-        match self {
-            EffectKind::Shield => e.armor -= 7,
-            _ => {}
+        if matches!(self, EffectKind::Shield) {
+            e.armor -= 7
         }
     }
     fn on_round(&self, e: &mut Entity) {

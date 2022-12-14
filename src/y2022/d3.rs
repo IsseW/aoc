@@ -28,6 +28,6 @@ pub fn solution_1(input: &str) -> String {
 
 pub fn solution_2(input: &str) -> String {
 	input.lines().chunks(3).into_iter().map(|group| {
-		group.map(|line| convert_to_bitset(line)).reduce(|a, b| a & b).unwrap().trailing_zeros() as u64 + 1
+		group.map(convert_to_bitset).reduce(|a, b| a & b).unwrap().trailing_zeros() as u64 + 1
 	}).sum::<u64>().to_string()
 }

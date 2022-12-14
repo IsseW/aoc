@@ -32,8 +32,8 @@ fn is_valid(password: &[u8]) -> bool {
 
 fn increment(password: &mut [u8], position: usize) {
     password[position] += 1;
-    if password[position] > 'z' as u8 {
-        password[position] = 'a' as u8;
+    if password[position] > b'z' {
+        password[position] = b'a';
         if position > 0 {
             increment(password, position - 1);
         }

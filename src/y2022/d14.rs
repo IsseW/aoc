@@ -25,7 +25,6 @@ fn parse(input: &str, mut min: Vec2<u32>, mut max: Vec2<u32>) -> (Grid<Cell>, Ve
 		}).collect_vec()
 	}).collect_vec();
 
-	let start = Instant::now();
 	let size = max - min + 1;
 	let mut grid = Grid::new(size.x as usize, size.y as usize + 1);
 
@@ -99,11 +98,9 @@ pub fn solution_2(input: &str) -> String {
 		let mut last_right = false;
 		for x in (center - y)..=(center + y) {
 			let right = matches!(grid[(x + 1, y - 1)], Cell::Sand);
-			if matches!(grid[(x, y)], Cell::Air) {
-				if last_center || last_right || right {
-					grid[(x, y)] = Cell::Sand;
-					sand_count += 1;
-				}
+			if matches!(grid[(x, y)], Cell::Air) && (last_center || last_right || right) {
+				grid[(x, y)] = Cell::Sand;
+				sand_count += 1;
 			}
 			last_center = last_right;
 			last_right = right;

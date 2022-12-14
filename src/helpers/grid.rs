@@ -17,22 +17,38 @@ pub enum WrapMode {
     Wrapped,
 }
 
-pub struct GridWalker<'a, T> {
+pub trait Collider<T> {
+    fn collides(&self, cell: &T) -> bool;
+}
+
+impl<T> Collider<T> for () {
+    fn collides(&self, cell: &T) -> bool {
+        false
+    }
+}
+
+impl<T, F: for<'a> Fn(&'a T) -> bool> Collider<T> for F {
+    fn collides(&self, cell: &T) -> bool {
+        self(cell)
+    }
+}
+
+pub struct GridWalker<'a, T, C: Collider<T> = ()> {
     mode: WrapMode,
-    collide: Option<Box<dyn Fn(&T) -> bool>>,
+    collider: Option<C>,
     grid: &'a Grid<T>,
     x: usize,
     y: usize,
 }
 
-impl<'a, T> GridWalker<'a, T> {
+impl<'a, T, C: Collider<T>> GridWalker<'a, T, C> {
     pub fn clamped(grid: &'a Grid<T>) -> Self {
         Self {
             mode: WrapMode::Clamped,
             grid,
             x: 0,
             y: 0,
-            collide: None,
+            collider: None,
         }
     }
     pub fn wrapped(grid: &'a Grid<T>) -> Self {
@@ -41,15 +57,15 @@ impl<'a, T> GridWalker<'a, T> {
             grid,
             x: 0,
             y: 0,
-            collide: None,
+            collider: None,
         }
     }
-    pub fn collide<F: Fn(&T) -> bool + 'static>(&mut self, func: F) -> &mut Self {
-        self.collide = Some(Box::new(func));
+    pub fn collider(&mut self, collider: C) -> &mut Self {
+        self.collider = Some(collider);
         self
     }
     pub fn collide_off(&mut self) -> &mut Self {
-        self.collide = None;
+        self.collider = None;
         self
     }
     pub fn mode(&mut self, mode: WrapMode) -> &mut Self {
@@ -98,11 +114,7 @@ impl<'a, T> GridWalker<'a, T> {
     }
 
     fn collides(&self, t: &T) -> bool {
-        if let Some(collide) = &self.collide {
-            collide(t)
-        } else {
-            false
-        }
+        self.collider.as_ref().map_or(false, |collider| collider.collides(t))
     }
 
     pub fn pos(&self) -> (usize, usize) {
@@ -719,7 +731,7 @@ pub trait IntoGrid<T> {
 
 impl<T> IntoGrid<T> for Vec<Vec<T>> {
     fn into_grid(self) -> Grid<T> {
-        if self.len() == 0 || self[0].len() == 0 {
+        if self.is_empty() || self[0].is_empty() {
             return Grid::empty();
         }
         let height = self.len();
@@ -1018,12 +1030,12 @@ impl Neighbors for Close {
 
 impl<T: fmt::Display> fmt::Display for Grid<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\n")?;
+        writeln!(f)?;
         for row in self.rows() {
             for tile in row.iter() {
                 write!(f, "{} ", tile)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -1212,8 +1224,8 @@ impl<T: Clone> Clone for Grid<T> {
     fn clone(&self) -> Self {
         Self {
             data: self.data.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
+            width: self.width,
+            height: self.height,
         }
     }
 }

@@ -8,7 +8,7 @@ impl Sue {
     fn new(input: &str) -> Self {
         let mut s = Self::default();
         let (n, d) = input.split_once(": ").unwrap();
-        s.number = u32::from_str_radix(n.split_once(' ').unwrap().1, 10).unwrap();
+        s.number = n.split_once(' ').unwrap().1.parse().unwrap();
 
         let split = d.split(", ");
 
@@ -26,15 +26,15 @@ impl Sue {
                 "cars" => 8,
                 "perfumes" => 9,
                 _ => panic!(),
-            }] = Some(u32::from_str_radix(number.trim(), 10).unwrap());
+            }] = Some(number.trim().parse().unwrap());
         }
         s
     }
 
     fn equals_1(&self, other: &[u32; 10]) -> bool {
-        for i in 0..10 {
-            if let Some(value) = self.data[i] {
-                if value != other[i] {
+        for (other, data) in other.iter().zip(self.data.iter()) {
+            if let Some(value) = data {
+                if value != other {
                     return false;
                 }
             }
@@ -43,12 +43,12 @@ impl Sue {
     }
 
     fn equals_2(&self, other: &[u32; 10]) -> bool {
-        for i in 0..10 {
-            if let Some(value) = self.data[i] {
+        for (i, (other, data)) in other.iter().zip(self.data.iter()).enumerate() {
+            if let Some(value) = data {
                 if !match i {
-                    1 | 7 => value > other[i],
-                    3 | 6 => value < other[i],
-                    _ => value == other[i],
+                    1 | 7 => value > other,
+                    3 | 6 => value < other,
+                    _ => value == other,
                 } {
                     return false;
                 }

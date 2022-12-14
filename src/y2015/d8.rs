@@ -4,7 +4,7 @@ pub fn solution_1(input: &str) -> String {
         .map(|line| {
             let mut in_mem = 0;
             let chars: Vec<char> = line.trim().chars().collect();
-            if chars.len() == 0 {
+            if chars.is_empty() {
                 return 0;
             }
             let mut i = 1;

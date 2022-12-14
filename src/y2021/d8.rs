@@ -4,19 +4,19 @@ use itertools::Itertools;
 use crate::helpers;
 
 const DIGITS: [u8; 10] = [
-    0b0_1110111,
-    0b0_0010010,
-    0b0_1011101,
-    0b0_1011011,
-    0b0_0111010,
-    0b0_1101011,
-    0b0_1101111,
-    0b0_1010010,
-    0b0_1111111,
-    0b0_1111011,
+    0b0111_0111,
+    0b0001_0010,
+    0b0101_1101,
+    0b0101_1011,
+    0b0011_1010,
+    0b0110_1011,
+    0b0110_1111,
+    0b0101_0010,
+    0b0111_1111,
+    0b0111_1011,
 ];
 
-const DIGIT_POSITIONS: [&'static [u8]; 10] = [
+const DIGIT_POSITIONS: [&[u8]; 10] = [
     &[0, 1, 2, 4, 5, 6],
     &[2, 5],
     &[0, 2, 3, 4, 6],
@@ -45,13 +45,12 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
             })
         })
         .collect::<Vec<u8>>();
-    if possible_digits.len() == 0 {
+    if possible_digits.is_empty() {
         return possible_digits;
     }
     let possible_segments = possible_digits
         .iter()
-        .map(|&digit| DIGIT_POSITIONS[digit as usize].iter())
-        .flatten()
+        .flat_map(|&digit| DIGIT_POSITIONS[digit as usize].iter())
         .collect::<HashSet<_>>();
     for &segment in segments {
         possible[segment as usize].drain_filter(|seg| !possible_segments.contains(seg));
@@ -95,7 +94,7 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
 }
 
 fn translate(word: &str) -> Vec<u8> {
-    word.chars().map(|c| c as u8 - 'a' as u8).collect()
+    word.chars().map(|c| c as u8 - b'a').collect()
 }
 
 pub fn solution_1(input: &str) -> String {
@@ -127,7 +126,7 @@ pub fn solution_2(input: &str) -> String {
     dbg!(&possible);
     dbg!(get_possible(&vec![0, 2, 3], &mut possible));
 
-    return String::new();
+    String::new()
     /*
     input
         .lines()

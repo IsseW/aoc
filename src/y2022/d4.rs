@@ -1,4 +1,4 @@
-fn parse<'a>(input: &'a str) -> impl Iterator<Item = ((u32, u32), (u32, u32))> + 'a {
+fn parse(input: &str) -> impl Iterator<Item = ((u32, u32), (u32, u32))> + '_ {
 	input.lines().map(|ranges| {
 		let res: (u32, u32, u32, u32) = strp::scan!(ranges => "{}-{},{}-{}");
 		((res.0, res.1), (res.2, res.3))

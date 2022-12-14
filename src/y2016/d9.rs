@@ -32,12 +32,12 @@ pub fn solution_2(input: &str) -> String {
         while *i < max {
             if chars[*i] == '(' {
                 *i += 1;
-                let length: usize = parse_number(&chars, i);
+                let length: usize = parse_number(chars, i);
                 if chars[*i] != 'x' {
                     panic!("Expected 'x'");
                 }
                 *i += 1;
-                let times: usize = parse_number(&chars, i);
+                let times: usize = parse_number(chars, i);
                 if chars[*i] != ')' {
                     panic!("Expected ')'");
                 }

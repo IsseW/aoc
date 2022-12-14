@@ -9,13 +9,13 @@ pub fn solution_1(input: &str) -> String {
             let (encrypted, checksum) = line.split_once('[').unwrap();
             let checksum = checksum.trim_end_matches(']');
             let id = if let [.., id] = encrypted.split('-').collect_vec()[..] {
-                u32::from_str_radix(id, 10).unwrap()
+                id.parse::<u32>().unwrap()
             } else {
                 panic!();
             };
             let counts = encrypted
                 .chars()
-                .take_while(|c| !(*c >= '0' && *c <= '9'))
+                .take_while(|c| !('0'..='9').contains(c))
                 .filter(|c| *c != '-')
                 .counts();
             let mut counts = counts.iter().collect_vec();
@@ -39,12 +39,12 @@ fn decrypt(encrypted: &str, id: u32) -> String {
     encrypted
         .bytes()
         .map(|char| {
-            if char == '-' as u8 {
+            if char == b'-' {
                 ' '
             } else {
-                let letter = char - 'a' as u8;
-                let shift = id % ('z' as u32 - 'a' as u32 + 1);
-                ('a' as u8 + (letter + shift as u8) % ('z' as u8 - 'a' as u8 + 1)) as char
+                let letter = char - b'a';
+                let shift = id % (b'z' as u32 - b'a' as u32 + 1);
+                (b'a' + (letter + shift as u8) % (b'z' - b'a' + 1)) as char
             }
         })
         .collect::<String>()
@@ -57,7 +57,7 @@ pub fn solution_2(input: &str) -> String {
             let (encrypted, checksum) = line.split_once('[').unwrap();
             let checksum = checksum.trim_end_matches(']');
             let id = if let [.., id] = encrypted.split('-').collect_vec()[..] {
-                u32::from_str_radix(id, 10).unwrap()
+                id.parse().unwrap()
             } else {
                 panic!();
             };

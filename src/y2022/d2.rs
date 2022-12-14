@@ -1,6 +1,6 @@
 use crate::helpers;
 
-fn parse<'a>(input: &'a str) -> impl Iterator<Item = (u8, u8)> + 'a {
+fn parse(input: &str) -> impl Iterator<Item = (u8, u8)> + '_ {
     input.lines().filter_map(|line| {
 		let [e, p] = *line.split_whitespace().filter_map(|s| (s.len() == 1).then(|| s.chars().next()).flatten()).collect::<Vec<_>>() else {
 			return None;

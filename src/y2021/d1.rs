@@ -4,7 +4,7 @@ pub fn solution_1(input: &str) -> String {
     let mut last = 0;
     let mut result = 0;
     input.lines().for_each(|r| {
-        if let Ok(r) = i32::from_str_radix(r, 10) {
+        if let Ok(r) = r.parse() {
             if r > last {
                 result += 1;
             }
@@ -21,9 +21,9 @@ pub fn solution_2(input: &str) -> String {
 
     for i in 0..lines.len() - 2 {
         if let (Ok(a), Ok(b), Ok(c)) = (
-            i32::from_str_radix(lines[i], 10),
-            i32::from_str_radix(lines[i + 1], 10),
-            i32::from_str_radix(lines[i + 2], 10),
+            lines[i].parse::<i32>(),
+            lines[i + 1].parse::<i32>(),
+            lines[i + 2].parse::<i32>(),
         ) {
             let r = a + b + c;
             if r > last {

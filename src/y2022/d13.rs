@@ -40,7 +40,7 @@ fn parse_value(input: &mut Chars) -> Option<Value> {
     }
 }
 
-fn parse<'a>(input: &'a str) -> impl Iterator<Item = (Value, Value)> + 'a {
+fn parse(input: &str) -> impl Iterator<Item = (Value, Value)> + '_ {
     input.split("\n\n").map(|pair| {
         let (left, right) = pair.split_once('\n').unwrap();
         (
@@ -65,25 +65,21 @@ fn is_list_ordered<'a>(
     left.zip(right)
         .map(|(left, right)| is_ordered(left, right))
         .find(|res| matches!(res, Res::Ok | Res::Err))
-        .unwrap_or_else(|| if left_len < right_len {
-            Res::Ok
-        } else if left_len > right_len {
-            Res::Err
-		} else {
-            Res::Continue
-        })
+        .unwrap_or(match left_len.cmp(&right_len) {
+				Ordering::Less => Res::Ok,
+				Ordering::Equal => Res::Continue,
+				Ordering::Greater => Res::Err,
+		})
 }
 
 fn is_ordered(left: &Value, right: &Value) -> Res {
     match (left, right) {
         (Value::Integer(left), Value::Integer(right)) => {
-            if left < right {
-                Res::Ok
-            } else if left > right {
-                Res::Err
-            } else {
-                Res::Continue
-            }
+			match left.cmp(right) {
+				Ordering::Less => Res::Ok,
+				Ordering::Equal => Res::Continue,
+				Ordering::Greater => Res::Err,
+			}
         }
         (Value::Array(left), Value::Array(right)) => is_list_ordered(left.iter(), right.iter()),
         (Value::Integer(_), Value::Array(right)) => is_list_ordered(once(left), right.iter()),

@@ -3,7 +3,7 @@ use itertools::Itertools;
 fn parse(input: &str) -> (Vec<u32>, Vec<u32>) {
     let mut containers: Vec<u32> = input
         .lines()
-        .map(|line| u32::from_str_radix(line.trim(), 10).unwrap())
+        .map(|line| line.trim().parse().unwrap())
         .collect();
     containers.sort_by_key(|v| -(*v as i64));
     let mut maxes: Vec<u32> = containers
