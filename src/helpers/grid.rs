@@ -5,7 +5,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     fmt,
     hash::{Hash, Hasher},
-    ops::{self, Index, IndexMut},
+    ops::{self, Index, IndexMut}, marker::PhantomData,
 };
 
 use itertools::Itertools;
@@ -399,11 +399,12 @@ pub trait GridLinearSlice<'a>: Sized {
     fn len(&self) -> usize;
     fn get(&self, i: usize) -> Option<&Self::Output>;
 
-    fn iter(&'a self) -> GridLinearIter<Self> {
+    fn iter(self) -> GridLinearIter<'a, Self> {
         GridLinearIter {
-            slice: self,
             front: 0,
             back: self.len() as isize - 1,
+            slice: self,
+            _marker: PhantomData,
         }
     }
 
@@ -412,12 +413,24 @@ pub trait GridLinearSlice<'a>: Sized {
 
 pub trait GridLinearSliceMut<'a>: GridLinearSlice<'a> {
     fn get_mut(&mut self, i: usize) -> Option<&mut Self::Output>;
+
+    fn iter_mut(self) -> GridLinearIterMut<'a, Self> {
+        GridLinearIterMut {
+            front: 0,
+            back: self.len() as isize - 1,
+            slice: self,
+            _marker: PhantomData,
+        }
+    }
+
+    fn from_grid_mut(grid: &'a mut Grid<Self::Output>, i: usize) -> Option<Self>;
 }
 
-pub struct GridLinearIter<'a, L: GridLinearSlice<'a>> {
-    slice: &'a L,
+pub struct GridLinearIter<'a, L: GridLinearSlice<'a> + 'a> {
+    slice: L,
     front: isize,
     back: isize,
+    _marker: PhantomData<&'a ()>,
 }
 
 impl<'a, L: GridLinearSlice<'a>> Iterator for GridLinearIter<'a, L> {
@@ -427,7 +440,7 @@ impl<'a, L: GridLinearSlice<'a>> Iterator for GridLinearIter<'a, L> {
         if self.front <= self.back {
             let ret = self.slice.get(self.front.try_into().ok()?);
             self.front += 1;
-            ret
+            ret.map(|r| unsafe { &*( r as *const _) })
         } else {
             None
         }
@@ -439,7 +452,40 @@ impl<'a, L: GridLinearSlice<'a>> DoubleEndedIterator for GridLinearIter<'a, L> {
         if self.front <= self.back {
             let ret = self.slice.get(self.back.try_into().ok()?);
             self.back -= 1;
-            ret
+            ret.map(|r| unsafe { &*( r as *const _) })
+        } else {
+            None
+        }
+    }
+}
+
+pub struct GridLinearIterMut<'a, L: GridLinearSlice<'a> + 'a> {
+    slice: L,
+    front: isize,
+    back: isize,
+    _marker: PhantomData<&'a mut ()>,
+}
+
+impl<'a, L: GridLinearSliceMut<'a>> Iterator for GridLinearIterMut<'a, L> {
+    type Item = &'a mut L::Output;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let ret = self.slice.get_mut(self.front.try_into().ok()?);
+            self.front += 1;
+            ret.map(|r| unsafe { &mut *( r as *mut _) })
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, L: GridLinearSliceMut<'a>> DoubleEndedIterator for GridLinearIterMut<'a, L> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.front <= self.back {
+            let ret = self.slice.get_mut(self.back.try_into().ok()?);
+            self.back -= 1;
+            ret.map(|r| unsafe { &mut *( r as *mut _) })
         } else {
             None
         }
@@ -478,6 +524,7 @@ impl<'a, S: GridLinearSlice<'a>> DoubleEndedIterator for GridLinear<'a, S> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct GridRowSlice<'a, T> {
     grid: &'a Grid<T>,
     y: usize,
@@ -522,8 +569,13 @@ impl<'a, T> GridLinearSliceMut<'a> for GridRowSliceMut<'a, T> {
     fn get_mut(&mut self, i: usize) -> Option<&mut T> {
         self.grid.get_mut(i, self.y)
     }
+
+    fn from_grid_mut(grid: &'a mut Grid<Self::Output>, i: usize) -> Option<Self> {
+        grid.get_row_mut(i)
+    }
 }
 
+#[derive(Clone, Copy)]
 pub struct GridColumnSlice<'a, T> {
     grid: &'a Grid<T>,
     x: usize,
@@ -567,6 +619,10 @@ impl<'a, T> GridLinearSlice<'a> for GridColumnSliceMut<'a, T> {
 impl<'a, T> GridLinearSliceMut<'a> for GridColumnSliceMut<'a, T> {
     fn get_mut(&mut self, i: usize) -> Option<&mut T> {
         self.grid.get_mut(self.x, i)
+    }
+
+    fn from_grid_mut(grid: &'a mut Grid<Self::Output>, i: usize) -> Option<Self> {
+        grid.get_column_mut(i)
     }
 }
 
@@ -630,6 +686,14 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     pub fn empty() -> Self {
         Self {
             data: Vec::new(),
@@ -678,6 +742,17 @@ impl<T> Grid<T> {
             height,
         }
     }
+
+    pub fn to_input<F: FnMut(&T) -> char>(&self, mut map: F) -> String {
+        let mut string = String::with_capacity((self.width + 1) * self.height);
+        for row in self.rows() {
+            for cell in row.iter() {
+                string.push(map(cell));
+            }
+            string.push('\n');
+        }
+        string
+    } 
 
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
         self.data.iter()
