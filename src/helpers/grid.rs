@@ -219,6 +219,10 @@ where
             && self.rect.x + x.as_() < self.grid.width.as_()
             && self.rect.y + y.as_() < self.grid.height.as_()
     }
+
+    unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output {
+        self.grid.get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+    }
 }
 
 impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndex
@@ -245,6 +249,10 @@ where
             && self.rect.x + x.as_() < self.grid.width.as_()
             && self.rect.y + y.as_() < self.grid.height.as_()
     }
+    
+    unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output {
+        self.grid.get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+    }
 }
 
 impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndexMut
@@ -255,6 +263,9 @@ where
     fn get_mut_unchecked(&mut self, x: usize, y: usize) -> &mut Self::Output {
         self.grid
             .get_mut_unchecked((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+    }
+    unsafe fn get_mut_unchecked_unsafe(&mut self, x: usize, y: usize) -> &mut Self::Output {
+        self.grid.get_mut_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
     }
 }
 
@@ -1023,6 +1034,7 @@ pub trait GridIndex {
     fn get_start(&self) -> (usize, usize);
     fn get_size(&self) -> (usize, usize);
     fn get_unchecked(&self, x: usize, y: usize) -> &Self::Output;
+    unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output;
     fn extra_check(&self, x: usize, y: usize) -> bool;
 
     fn get<I>(&self, x: I, y: I) -> Option<&Self::Output>
@@ -1061,6 +1073,7 @@ pub trait GridIndex {
 
 pub trait GridIndexMut: GridIndex {
     fn get_mut_unchecked(&mut self, x: usize, y: usize) -> &mut Self::Output;
+    unsafe fn get_mut_unchecked_unsafe(&mut self, x: usize, y: usize) -> &mut Self::Output;
     fn get_mut<I>(&mut self, x: I, y: I) -> Option<&mut Self::Output>
     where
         I: PrimInt + TryInto<usize>,
@@ -1102,11 +1115,19 @@ impl<T> GridIndex for Grid<T> {
     fn extra_check(&self, x: usize, y: usize) -> bool {
         true
     }
+
+    unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output {
+        self.data.get_unchecked(y * self.width + x)
+    }
 }
 
 impl<T> GridIndexMut for Grid<T> {
     fn get_mut_unchecked(&mut self, x: usize, y: usize) -> &mut Self::Output {
         &mut self.data[y * self.width + x]
+    }
+
+    unsafe fn get_mut_unchecked_unsafe(&mut self, x: usize, y: usize) -> &mut Self::Output {
+        self.data.get_unchecked_mut(y * self.width + x)
     }
 }
 

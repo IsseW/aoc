@@ -93,25 +93,18 @@ pub fn solution_2(input: &str) -> String {
 
 	let center = sand_pos.0;
 	for y in 1..grid.height() {
-		let mut last_right = None;
-		let mut last_center = None;
+		let mut last_center = false;
+		let mut last_right = matches!(grid[(center - y, y)], Cell::Sand);
 		for x in (center - y)..=(center + y) {
+			let right = matches!(grid[(x + 1, y)], Cell::Sand);
 			if matches!(grid[(x, y)], Cell::Air) {
-				let row = grid.get_row(y - 1).unwrap();
-				let left = last_center.unwrap_or(matches!(row[x - 1], Cell::Sand));
-				let center = last_right.unwrap_or(matches!(row[x], Cell::Sand));
-				let right = matches!(row[x + 1], Cell::Sand);
-				last_center = Some(center);
-				last_right = Some(right);
-
-				if left || center || right {
+				if last_center || last_right || right {
 					grid[(x, y)] = Cell::Sand;
 					sand_count += 1;
 				}
-			} else {
-				last_center = last_right;
-				last_right = None;
 			}
+			last_center = last_right;
+			last_right = right;
 		}
 	}
 
