@@ -84,9 +84,7 @@ pub fn solution_1(input: &str) -> String {
 }
 
 pub fn solution_2(input: &str) -> String {
-	let start = Instant::now();
 	let (mut grid, min) = parse(input, Vec2::new(328, 0), Vec2::new(672, 0));
-	println!("parse: {} μs", start.elapsed().as_micros());
 	let sand_pos = ((500 - min.x) as usize, (0 - min.y) as usize);
 	grid[sand_pos] = Cell::Sand;
 	let mut sand_count = 1;
