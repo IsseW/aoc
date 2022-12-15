@@ -2,6 +2,7 @@ pub mod character_set;
 mod grid;
 mod line;
 mod node;
+pub mod spiral;
 
 pub use grid::*;
 pub use line::*;

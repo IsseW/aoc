@@ -1030,12 +1030,18 @@ impl Neighbors for Close {
 
 impl<T: fmt::Display> fmt::Display for Grid<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f)?;
-        for row in self.rows() {
-            for tile in row.iter() {
-                write!(f, "{} ", tile)?;
+        let displayed: Vec<String> = self.data.iter().map(|v| v.to_string()).collect();
+        let len = displayed.iter().map(|s| s.chars().count()).max().unwrap_or(0);
+        for (i, s) in displayed.into_iter().enumerate() {
+            for _ in 0..len - s.len() {
+                write!(f, " ")?;
             }
-            writeln!(f)?;
+            write!(f, "{}", s)?;
+            if i % self.width == self.width - 1 {
+                writeln!(f)?;
+            } else {
+                write!(f, " ")?;
+            }
         }
         Ok(())
     }
