@@ -827,6 +827,9 @@ impl<T> Grid<T> {
             }
         }
         if width != 0 {
+            if true_width == 0 {
+                true_width = width;
+            }
             if width != true_width {
                 for _ in width..true_width {
                     data.push(T::default())
@@ -1211,18 +1214,42 @@ impl Grid<bool> {
         }
         result
     }
+
+    pub fn collides(&self, other: &Grid<bool>, offset: (usize, usize)) -> bool {
+        if offset.0 + other.width > self.width || offset.1 + other.height > self.height {
+            return true;
+        }
+        for y in 0..other.height {
+            for x in 0..other.width {
+                if self[(x + offset.0, y + offset.1)] && other[(x, y)] {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    pub fn or(&mut self, other: &Grid<bool>, offset: (usize, usize)) {
+        if offset.0 < self.width && offset.1 < self.height {
+            for y in 0..other.height.min(self.height - offset.1) {
+                for x in 0..other.width.min(self.width - offset.0) {
+                    let other = other[(x, y)];
+                    self[(x + offset.0, y + offset.1)] |= other;
+                }
+            }
+        }
+    }
 }
 
 impl<T> Index<(usize, usize)> for Grid<T> {
     type Output = T;
     fn index(&self, index: (usize, usize)) -> &Self::Output {
-        self.get_unchecked(index.0, index.1)
+        self.get(index.0, index.1).unwrap()
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for Grid<T> {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        self.get_mut_unchecked(index.0, index.1)
+        self.get_mut(index.0, index.1).unwrap()
     }
 }
 

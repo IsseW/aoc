@@ -32,6 +32,7 @@ dependencies = [
  "integer-sqrt",
  "iterslide",
  "itertools",
+ "lazy_static",
  "md5",
  "num-derive",
  "num-traits",
