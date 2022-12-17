@@ -73,7 +73,7 @@ fn create_year_folder(year: u32) {
         let path = format!("{}/d{}.rs", code_folder.clone(), day);
         let path = Path::new(path.as_str());
         if !path.exists() {
-            fs::write(path, "input goes here".as_bytes()).expect("Could not create file");
+            fs::write(path, "".as_bytes()).expect("Could not create file");
         }
         include += format!("pub mod d{};\n", day).as_str();
     }
