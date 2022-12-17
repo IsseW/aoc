@@ -1,9 +1,7 @@
-use std::time::Instant;
-
 use itertools::Itertools;
 use vek::Vec2;
 
-use crate::helpers::{self, Grid, LineIter, GridLinearSlice, GridLinearSliceMut, straight};
+use crate::helpers::{Grid, straight};
 
 #[derive(Copy, Clone, PartialEq, Default)]
 enum Cell {

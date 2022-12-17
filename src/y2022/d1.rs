@@ -1,4 +1,3 @@
-use crate::helpers;
 
 fn elf_foods(input: &str) -> impl Iterator<Item = u64> + '_ {
 	input.split("\n\n").map(|elf| {

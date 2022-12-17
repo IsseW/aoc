@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display, iter::once};
+use std::{fmt::Display, iter::once};
 
 use hashbrown::{HashMap, HashSet};
 use itertools::Itertools;
@@ -72,7 +72,7 @@ fn search_game(game: Game, map: &UnGraphMap<Node, u32>, rates: &HashMap<Node, u3
 	if *timeleft == 0 {
 		return game.released;
 	}
-	map.edges(*position).filter(|(_, e, cost)| !game.open.contains(&e) && 1 + **cost < *timeleft).map(|(s, e, cost)| {
+	map.edges(*position).filter(|(_, e, cost)| !game.open.contains(&e) && 1 + **cost < *timeleft).map(|(_, e, cost)| {
 		let mut game = game.clone();
 		let (_, time) = game.positions[i];
 		let time = time - (1 + cost);

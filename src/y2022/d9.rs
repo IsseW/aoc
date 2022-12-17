@@ -1,8 +1,6 @@
 use hashbrown::HashSet;
 use vek::Vec2;
 
-use crate::helpers;
-
 pub fn solution_1(input: &str) -> String {
 	let mut set = HashSet::new();
 	let mut head_pos = Vec2::<i32>::zero();

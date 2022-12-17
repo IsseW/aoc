@@ -2,8 +2,6 @@ use std::mem;
 
 use crate::helpers::{Grid, Rect};
 
-use num_traits::AsPrimitive;
-
 pub fn solution_1(input: &str) -> String {
     let mut map = Grid::from_map(input);
     let (width, height) = map.get_size();

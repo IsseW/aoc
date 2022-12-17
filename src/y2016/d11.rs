@@ -1,10 +1,10 @@
-use core::fmt::{self, Display};
+use core::fmt;
 
 use itertools::Itertools;
 use rayon::iter::{
-    IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator,
+    IntoParallelIterator, ParallelBridge, ParallelIterator,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::helpers::*;
 
@@ -47,7 +47,7 @@ impl State {
         self.floors[floor].contains(&thing)
     }
 
-    fn get_connecting(&self, cache: &mut Cache) -> Vec<State> {
+    fn get_connecting(&self) -> Vec<State> {
         (1..=2)
             .into_par_iter()
             .map(|amount| {
@@ -184,8 +184,6 @@ fn get_start_state(input: &str) -> State {
     State { current: 0, floors }
 }
 
-type Cache = HashMap<[Vec<i32>; 3], Vec<[Vec<i32>; 3]>>;
-
 pub fn solution_1(input: &str) -> String {
     let initial_state = get_start_state(input);
     // A star our way to the solution...
@@ -195,8 +193,6 @@ pub fn solution_1(input: &str) -> String {
     let mut open_o = HashMap::new();
     let mut open = vec![HashMap::new(); MAX_DISTANCE];
     open[0].insert(initial_state, (0, dis));
-
-    let mut cached_states = Cache::new();
 
     while !open.is_empty() {
         let (closest_state, steps, left) = open
@@ -218,7 +214,7 @@ pub fn solution_1(input: &str) -> String {
             .remove(&closest_state);
         open_o.remove(&closest_state);
 
-        for state in closest_state.get_connecting(&mut cached_states) {
+        for state in closest_state.get_connecting() {
             if !closed.contains_key(&state) {
                 let distance = state.distance();
                 let entry = open_o

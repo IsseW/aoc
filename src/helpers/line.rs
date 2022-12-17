@@ -59,11 +59,14 @@ impl From<((i32, i32), (i32, i32))> for LineIter {
 }
 
 pub fn straight<I>(a: (I, I), b: (I, I)) -> impl Iterator<Item = (I, I)>
-    where
+where
     I: Ord + std::ops::Sub<I, Output = I> + AsPrimitive<usize>,
     RangeInclusive<I>: Iterator<Item = I> + Clone,
 {
     let s = (a.0.min(b.0), a.1.min(b.1));
     let e = (a.0.max(b.0), a.1.max(b.1));
-    (s.0..=e.0).cycle().zip((s.1..=e.1).cycle()).take((e.0 - s.0).max(e.1 - s.1).as_() + 1)
+    (s.0..=e.0)
+        .cycle()
+        .zip((s.1..=e.1).cycle())
+        .take((e.0 - s.0).max(e.1 - s.1).as_() + 1)
 }

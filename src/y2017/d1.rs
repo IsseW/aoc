@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::helpers;
-
 pub fn solution_1(input: &str) -> String {
 	let len = input.len();
 	input.chars().cycle().take(len + 1).map(|c| c.to_digit(10).unwrap()).tuple_windows::<(u32, u32)>().filter_map(|(a, b)| (a == b).then_some(a)).sum::<u32>().to_string()

@@ -2,8 +2,6 @@ use std::str::Lines;
 
 use hashbrown::HashMap;
 
-use crate::helpers;
-
 enum Entry<'a> {
 	Directory(HashMap<&'a str, Entry<'a>>),
 	File(usize),
@@ -40,7 +38,7 @@ fn parse_dir<'a>(lines: &mut Lines<'a>) -> HashMap<&'a str, Entry<'a>> {
 			let mut entries = HashMap::new();
 			while let Some(line) = lines.next() {
 				match line {
-					s if line.starts_with("$ cd ") => {
+					s if s.starts_with("$ cd ") => {
 						let name = line.trim_start_matches("$ cd ");
 						if name == ".." {
 							break;

@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::helpers;
-
 pub fn solution_1(input: &str) -> String {
 	input.lines().map(|line| {
 		let numbers = line.split_whitespace().map(|n| n.parse::<u32>().unwrap()).collect_vec();

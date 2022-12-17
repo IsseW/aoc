@@ -1,6 +1,6 @@
 use vek::{num_integer::Roots, Vec2};
 
-use crate::helpers::{self, Grid, spiral::Spiral};
+use crate::helpers::{Grid, spiral::Spiral};
 const LEN: usize = 1000;
 const ODD_SQUARES: [u32; LEN] = {
 	let mut arr = [0; LEN];

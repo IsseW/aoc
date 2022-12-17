@@ -1,7 +1,5 @@
 use std::{iter::once, str::Chars, cmp::Ordering};
 
-use crate::helpers;
-
 #[derive(Clone, PartialEq)]
 enum Value {
     Integer(u8),
@@ -90,7 +88,7 @@ fn is_ordered(left: &Value, right: &Value) -> Res {
 pub fn solution_1(input: &str) -> String {
     parse(input)
         .enumerate()
-        .filter(|(i, (left, right))| {
+        .filter(|(_, (left, right))| {
             let res = is_ordered(left, right);
             matches!(res, Res::Ok | Res::Continue)
         })

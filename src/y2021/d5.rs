@@ -1,5 +1,3 @@
-use std::iter;
-
 use crate::helpers::*;
 
 type Line = ((i32, i32), (i32, i32));

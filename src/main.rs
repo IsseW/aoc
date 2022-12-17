@@ -1,7 +1,11 @@
-#![feature(iter_advance_by, pattern, drain_filter, iter_collect_into, associated_type_defaults)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
+#![feature(
+    iter_advance_by,
+    pattern,
+    drain_filter,
+    iter_collect_into,
+    associated_type_defaults
+)]
+#![allow(dead_code, unused_variables)]
 
 use chrono::prelude::*;
 use itertools::Itertools;
@@ -60,7 +64,7 @@ fn create_year_folder(year: u32) {
         if !path.exists() {
             fs::write(
                 path,
-                "use crate::helpers;\n\npub fn solution_1(input: &str) -> String {\n\t\"Not yet implemented\".into()\n}\n\npub fn solution_2(input: &str) -> String {\n\t\"Not yet implemented\".into()\n}\n"
+                "\npub fn solution_1(input: &str) -> String {\n\t\"Not yet implemented\".into()\n}\n\npub fn solution_2(input: &str) -> String {\n\t\"Not yet implemented\".into()\n}\n"
                     .as_bytes(),
             )
             .expect("Could not create file");
@@ -74,11 +78,8 @@ fn create_year_folder(year: u32) {
         include += format!("pub mod d{};\n", day).as_str();
     }
 
-    fs::write(
-        format!("{}/mod.rs", code_folder),
-        include.as_bytes(),
-    )
-    .expect("Could not create file");
+    fs::write(format!("{}/mod.rs", code_folder), include.as_bytes())
+        .expect("Could not create file");
 }
 
 struct PartResult {

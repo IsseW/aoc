@@ -1,5 +1,4 @@
-use pathfinding::directed::astar::astar;
-use crate::helpers::{self, Grid, GridIndex, GridLinearSlice, OrderedFloat, Cardinals};
+use crate::helpers::{Grid, OrderedFloat, Cardinals};
 
 fn parse(input: &str) -> (Grid<u8>, (usize, usize), (usize, usize)) {
 	let mut i = 0;
@@ -23,9 +22,8 @@ fn parse(input: &str) -> (Grid<u8>, (usize, usize), (usize, usize)) {
 		i += 1;
 		Some(res)
 	});
-	let (width, height) = grid.get_size();
-	let start = (start % width, start / width);
-	let end = (end % width, end / width);
+	let start = (start % grid.width(), start / grid.width());
+	let end = (end % grid.width(), end / grid.width());
 	(grid, start, end)
 }
 

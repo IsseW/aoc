@@ -2,12 +2,12 @@ use std::collections::BTreeMap;
 
 use itertools::Itertools;
 
-use crate::helpers::{self, StrUtil};
+use crate::helpers::StrUtil;
 
 fn parse_stacks(input: &str) -> Vec<Vec<char>> {
 	let mut stacks: BTreeMap<usize, Vec<char>> = BTreeMap::new();
 	for line in input.lines().rev().skip(1) {
-		for (i, c) in line.find_enclosures('[', ']').enumerate() {
+		for c in line.find_enclosures('[', ']') {
 			let offset = c.as_ptr() as usize - line.as_ptr() as usize;
 			stacks.entry(offset).or_default().push(c.chars().next().unwrap());
 		}

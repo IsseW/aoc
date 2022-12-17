@@ -1,7 +1,4 @@
 use itertools::Itertools;
-use vek::{Aabr, Vec2};
-
-use crate::helpers::{self, Grid};
 
 struct Sensor {
 	pos: (i64, i64),

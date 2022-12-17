@@ -1,12 +1,10 @@
-use colored::Colorize;
 use hashbrown::HashSet;
 
-use crate::helpers::{self, Grid, GridLinearSlice, GridIndex};
+use crate::helpers::{Grid, GridLinearSlice, GridIndex};
 
 pub fn solution_1(input: &str) -> String {
 	let grid = Grid::from_input(input, |c| Some((c as u8 - b'0') as i32));
 	let mut set = HashSet::new();
-	let (width, height) = grid.get_size();
 	for (x, col) in grid.columns().enumerate() {
 		let mut last = -1;
 		for (y, cell) in col.iter().enumerate() {

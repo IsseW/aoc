@@ -1,15 +1,13 @@
 #![allow(dead_code)]
 
 use std::{
-    cmp::Ordering,
-    collections::hash_map::DefaultHasher,
     fmt,
-    hash::{Hash, Hasher},
-    ops::{self, Index, IndexMut}, marker::PhantomData,
+    marker::PhantomData,
+    ops::{self, Index, IndexMut},
 };
 
 use itertools::Itertools;
-use num_traits::{AsPrimitive, Num, PrimInt, Signed, Unsigned, Zero};
+use num_traits::{AsPrimitive, PrimInt};
 
 #[derive(PartialEq, Eq)]
 pub enum WrapMode {
@@ -114,7 +112,9 @@ impl<'a, T, C: Collider<T>> GridWalker<'a, T, C> {
     }
 
     fn collides(&self, t: &T) -> bool {
-        self.collider.as_ref().map_or(false, |collider| collider.collides(t))
+        self.collider
+            .as_ref()
+            .map_or(false, |collider| collider.collides(t))
     }
 
     pub fn pos(&self) -> (usize, usize) {
@@ -233,7 +233,8 @@ where
     }
 
     unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output {
-        self.grid.get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+        self.grid
+            .get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
     }
 }
 
@@ -261,9 +262,10 @@ where
             && self.rect.x + x.as_() < self.grid.width.as_()
             && self.rect.y + y.as_() < self.grid.height.as_()
     }
-    
+
     unsafe fn get_unchecked_unsafe(&self, x: usize, y: usize) -> &Self::Output {
-        self.grid.get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+        self.grid
+            .get_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
     }
 }
 
@@ -277,7 +279,8 @@ where
             .get_mut_unchecked((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
     }
     unsafe fn get_mut_unchecked_unsafe(&mut self, x: usize, y: usize) -> &mut Self::Output {
-        self.grid.get_mut_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
+        self.grid
+            .get_mut_unchecked_unsafe((self.rect.x + x.as_()).as_(), (self.rect.y + y.as_()).as_())
     }
 }
 
@@ -463,7 +466,7 @@ impl<'a, L: GridLinearSlice<'a>> Iterator for GridLinearIter<'a, L> {
         if self.front <= self.back {
             let ret = self.slice.get(self.front.try_into().ok()?);
             self.front += 1;
-            ret.map(|r| unsafe { &*( r as *const _) })
+            ret.map(|r| unsafe { &*(r as *const _) })
         } else {
             None
         }
@@ -475,7 +478,7 @@ impl<'a, L: GridLinearSlice<'a>> DoubleEndedIterator for GridLinearIter<'a, L> {
         if self.front <= self.back {
             let ret = self.slice.get(self.back.try_into().ok()?);
             self.back -= 1;
-            ret.map(|r| unsafe { &*( r as *const _) })
+            ret.map(|r| unsafe { &*(r as *const _) })
         } else {
             None
         }
@@ -496,7 +499,7 @@ impl<'a, L: GridLinearSliceMut<'a>> Iterator for GridLinearIterMut<'a, L> {
         if self.front <= self.back {
             let ret = self.slice.get_mut(self.front.try_into().ok()?);
             self.front += 1;
-            ret.map(|r| unsafe { &mut *( r as *mut _) })
+            ret.map(|r| unsafe { &mut *(r as *mut _) })
         } else {
             None
         }
@@ -508,7 +511,7 @@ impl<'a, L: GridLinearSliceMut<'a>> DoubleEndedIterator for GridLinearIterMut<'a
         if self.front <= self.back {
             let ret = self.slice.get_mut(self.back.try_into().ok()?);
             self.back -= 1;
-            ret.map(|r| unsafe { &mut *( r as *mut _) })
+            ret.map(|r| unsafe { &mut *(r as *mut _) })
         } else {
             None
         }
@@ -558,7 +561,10 @@ impl<'a, S: GridLinearSliceMut<'a>> Iterator for GridLinearMut<'a, S> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.front <= self.back {
-            let l = S::from_grid_mut(unsafe { &mut *(self.grid as *mut _) }, self.front.try_into().ok()?);
+            let l = S::from_grid_mut(
+                unsafe { &mut *(self.grid as *mut _) },
+                self.front.try_into().ok()?,
+            );
             self.front += 1;
             l
         } else {
@@ -570,7 +576,10 @@ impl<'a, S: GridLinearSliceMut<'a>> Iterator for GridLinearMut<'a, S> {
 impl<'a, S: GridLinearSliceMut<'a>> DoubleEndedIterator for GridLinearMut<'a, S> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.front <= self.back {
-            let l = S::from_grid_mut(unsafe { &mut *(self.grid as *mut _) }, self.back.try_into().ok()?);
+            let l = S::from_grid_mut(
+                unsafe { &mut *(self.grid as *mut _) },
+                self.back.try_into().ok()?,
+            );
             self.back -= 1;
             l
         } else {
@@ -854,7 +863,7 @@ impl<T> Grid<T> {
             string.push('\n');
         }
         string
-    } 
+    }
 
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
         self.data.iter()
@@ -887,7 +896,7 @@ impl<T> Grid<T> {
             back: self.height as isize - 1,
         }
     }
-    
+
     pub fn rows_mut(&mut self) -> GridLinearMut<GridRowSliceMut<T>> {
         GridLinearMut {
             front: 0,
@@ -903,7 +912,7 @@ impl<T> Grid<T> {
             back: self.width as isize - 1,
         }
     }
-    
+
     pub fn columns_mut(&mut self) -> GridLinearMut<GridColumnSliceMut<T>> {
         GridLinearMut {
             front: 0,
@@ -1034,7 +1043,11 @@ impl Neighbors for Close {
 impl<T: fmt::Display> fmt::Display for Grid<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let displayed: Vec<String> = self.data.iter().map(|v| v.to_string()).collect();
-        let len = displayed.iter().map(|s| s.chars().count()).max().unwrap_or(0);
+        let len = displayed
+            .iter()
+            .map(|s| s.chars().count())
+            .max()
+            .unwrap_or(0);
         for (i, s) in displayed.into_iter().enumerate() {
             for _ in 0..len - s.len() {
                 write!(f, " ")?;

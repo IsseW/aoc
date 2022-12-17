@@ -1,6 +1,5 @@
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
-use crate::helpers;
 
 fn get_crabs(input: &str) -> Vec<u32> {
     let mut crabs = input

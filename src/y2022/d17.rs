@@ -1,4 +1,6 @@
-use crate::helpers::{self, Grid, GridIndex, CollectGridFlat};
+use hashbrown::HashMap;
+
+use crate::helpers::{Grid, CollectGridFlat};
 
 fn parse(input: &str) -> impl ExactSizeIterator<Item = isize> + '_ + Clone {
 	input.bytes().map(|c| {
@@ -73,43 +75,36 @@ pub fn solution_1(input: &str) -> String {
 }
 
 pub fn solution_2(input: &str) -> String {
-	let input = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 	let n = 1000000000000;
 	let input = parse(input);
 
-	let cycle_len = input.len() * SHAPES.len();
+	let input_cycle_len = input.len() * SHAPES.len();
 	
 	let mut jets = input.clone().cycle();
 
-	let height = SHAPES.iter().map(|shape| shape.height()).sum::<usize>() * cycle_len * 1000000;
+	let height = SHAPES.iter().map(|shape| shape.height()).sum::<usize>() * input_cycle_len * 100;
 	let mut grid = Grid::new(7, height);
 
 	let mut highest = 0;
-	let mut first_cycle = Vec::new();
-	for i in 0..cycle_len {
-		first_cycle.push(sim_piece(i, &mut jets, &mut grid, &mut highest).0);
-	}
-	let (cycle_height, cycle_len) = (1..).find_map(|k| {
-		if k % 10000 == 0 {
-			dbg!(k * cycle_len);
-		}
-		let mut fits_first = true;
+	let mut map = HashMap::<Vec<usize>, (usize, usize)>::new();
+	let (cycle_height, cycle_start, cycle_end) = (0..).find_map(|k| {
 		let last_highest = highest;
-		for i in 0..cycle_len {
-			let first = first_cycle[i];
-			let i = i + k * cycle_len;
+		let x = (0..input_cycle_len).map(|i| {
+			let i = i + k * input_cycle_len;
 			let res = sim_piece(i, &mut jets, &mut grid, &mut highest);
 			if highest > height {
 				panic!()
 			}
-			if fits_first && res.0 != first {
-				fits_first = false;
-			}
-		}
-		fits_first.then_some((last_highest, k * cycle_len))
-	}).unwrap();
+			res.0
+		}).collect();
 
-	let rest = simulate(input.cycle(), n % cycle_len);
+		map.insert(x, (k, last_highest)).map(|(k_start, start_height)| {
+			(last_highest - start_height, k_start * input_cycle_len, k * input_cycle_len)
+		})
+	}).unwrap();
+	let cycle_len = cycle_end - cycle_start;
+
+	let rest = simulate(input.cycle(), cycle_end + (n - cycle_start) % cycle_len) - cycle_height;
 
 	(cycle_height * (n / cycle_len) + rest).to_string()
 }

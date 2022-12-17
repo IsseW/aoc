@@ -1,4 +1,4 @@
-use crate::helpers::{self, Grid, GridIndexMut};
+use crate::helpers::{Grid, GridIndexMut};
 
 enum Instr {
 	Noop,

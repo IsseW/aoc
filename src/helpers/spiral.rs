@@ -1,6 +1,5 @@
 use vek::Vec2;
 
-
 #[derive(Clone)]
 pub struct Spiral {
     layer: i32,
@@ -10,7 +9,9 @@ pub struct Spiral {
 impl Spiral {
     #[allow(clippy::new_without_default)]
     /// Creates a new spiral starting at the origin
-    pub fn new() -> Self { Self { layer: 0, i: 0 } }
+    pub fn new() -> Self {
+        Self { layer: 0, i: 0 }
+    }
 
     /// Creates an iterator over points in a spiral starting at the origin and
     /// going out to some radius

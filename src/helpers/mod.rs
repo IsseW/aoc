@@ -178,7 +178,6 @@ macro_rules! match_starts_with {
         {
             let _match = $string;
             'match_block: {
-                use $crate::helpers::StrUtil;
                 $(
                     if let Some($ident) = _match.strip_prefix($pat) {
                         let res = $block;

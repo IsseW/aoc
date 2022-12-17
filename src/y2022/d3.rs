@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::helpers;
-
 fn value_of(c: char) -> u64 {
 	1 << match c {
 		'a'..='z' => (c as u8 - b'a') as u64,
