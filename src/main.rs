@@ -3,7 +3,8 @@
     pattern,
     drain_filter,
     iter_collect_into,
-    associated_type_defaults
+    associated_type_defaults,
+    array_try_map,
 )]
 #![allow(dead_code, unused_variables)]
 
