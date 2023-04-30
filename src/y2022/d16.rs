@@ -1,11 +1,9 @@
-use std::{fmt::Display, iter::once};
-
-use hashbrown::{HashMap, HashSet};
-use itertools::Itertools;
+use std::fmt::Display;
+use hashbrown::HashMap;
 use petgraph::prelude::UnGraphMap;
 
 #[derive(PartialEq, Eq, Copy, Clone, Hash, PartialOrd, Ord)]
-struct Node(u16);
+struct Node(u8);
 
 impl Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -13,25 +11,31 @@ impl Display for Node {
     }
 }
 
-fn node(id: &str) -> Option<Node> {
-	let (a, b): (u8, u8) = id.bytes().collect_tuple()?;
-
-	Some(Node(a as u16 + ((b as u16) << 8)))
-}
-
 fn parse(input: &str) -> (UnGraphMap<Node, u32>, Vec<(Node, u32)>) {
 	let mut graph = UnGraphMap::new();
 	let mut rates = Vec::new();
+	let mut node_c = 0u8;
+	let mut nodes = HashMap::new();
+	let mut node = |key: String| -> Node {
+		*nodes.entry(key).or_insert_with(|| {
+			let i = node_c;
+			node_c += 1;
+			Node(i)
+		})
+	};
+
+	let start = node("AA".to_string());
+
 	for line in input.lines() {
 		let (id, rate, rest): (String, u32, String) = strp::scan!(line => "Valve {} has flow rate={}; {}");
 		let connected = rest.strip_prefix("tunnels lead to valve").or(rest.strip_prefix("tunnel leads to valve")).unwrap();
 		let connected = connected.strip_prefix('s').unwrap_or(connected).trim_start();
-		let n = node(&id).unwrap();
+		let n = node(id);
 		if rate > 0 {
 			rates.push((n, rate));
 		}
 		for conn in connected.split(", ") {
-			graph.add_edge(n, node(conn).unwrap(), 1.0);
+			graph.add_edge(n, node(conn.to_string()), 1.0);
 
 		}
 	}
@@ -39,7 +43,6 @@ fn parse(input: &str) -> (UnGraphMap<Node, u32>, Vec<(Node, u32)>) {
 
 	let mut ngraph = UnGraphMap::new();
 
-	let start = node("AA").unwrap();
 	for node in rates.iter().map(|(n, _)| *n).chain(std::iter::once(start)) {
 		let costs = petgraph::algo::dijkstra(
 			&graph,
@@ -61,23 +64,23 @@ fn parse(input: &str) -> (UnGraphMap<Node, u32>, Vec<(Node, u32)>) {
 
 
 #[derive(Clone)]
-struct Game {
+struct Game<const L: usize> {
 	released: u32,
-	open: HashSet<Node>,
-	positions: Vec<(Node, u32)>,
+	open: u128,
+	positions: [(Node, u32); L],
 }
 
-fn search_game(game: Game, map: &UnGraphMap<Node, u32>, rates: &HashMap<Node, u32>) -> u32 {
+fn search_game<const L: usize>(game: Game<L>, map: &UnGraphMap<Node, u32>, rates: &HashMap<Node, u32>) -> u32 {
 	let (i, (position, timeleft)) = game.positions.iter().enumerate().max_by_key(|(_, (_, t))| t).unwrap();
 	if *timeleft == 0 {
 		return game.released;
 	}
-	map.edges(*position).filter(|(_, e, cost)| !game.open.contains(&e) && 1 + **cost < *timeleft).map(|(_, e, cost)| {
+	map.edges(*position).filter(|(_, e, cost)| (game.open & (1 << e.0)) == 0 && 1 + **cost < *timeleft).map(|(_, e, cost)| {
 		let mut game = game.clone();
 		let (_, time) = game.positions[i];
 		let time = time - (1 + cost);
 		game.positions[i] = (e, time);
-		game.open.insert(e);
+		game.open |= 1 << e.0;
 
 		game.released += rates.get(&e).unwrap_or(&0) * time;
 
@@ -85,22 +88,22 @@ fn search_game(game: Game, map: &UnGraphMap<Node, u32>, rates: &HashMap<Node, u3
 	}).max().unwrap_or(game.released)
 }
 
-fn solve(input: &str, time: u32, count: usize) -> u32 {
+fn solve<const L: usize>(input: &str, time: u32) -> u32 {
 	let (graph, rates) = parse(input);
 
-	let start = node("AA").unwrap();
+	let start = Node(0);
 	search_game(Game {
 		released: 0,
-		open: once(start).collect(),
-		positions: vec![(start, time); count],
+		open: 1,
+		positions: [(start, time); L],
 	}, &graph, &rates.into_iter().collect())
 }
 
 
 pub fn solution_1(input: &str) -> String {
-	solve(input, 30, 1).to_string()
+	solve::<1>(input, 30).to_string()
 }
 
 pub fn solution_2(input: &str) -> String {
-	solve(input, 26, 2).to_string()
+	solve::<2>(input, 26).to_string()
 }

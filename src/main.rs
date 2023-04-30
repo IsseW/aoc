@@ -13,7 +13,7 @@ use itertools::Itertools;
 use paste::paste;
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use seq_macro::seq;
-use std::{env, fmt::Display, fs};
+use std::{env, fmt::Display, fs, time::Duration};
 use std::{path::Path, time::Instant};
 
 mod helpers;
@@ -85,20 +85,50 @@ fn create_year_folder(year: u32) {
 
 struct PartResult {
     result: String,
-    time: f64,
+    time: Duration,
 }
 
 struct DayResult {
     year: u32,
     day: u8,
-    read_time: f64,
+    read_time: Duration,
     part_1: PartResult,
     part_2: PartResult,
 }
 
 impl Display for DayResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}\tread time: {}\n\tpart 1:\n\t\tresult: {}\n\t\ttime: {}\n\tpart 2:\n\t\tresult: {}\n\t\ttime: {}", self.year, self.day, self.read_time, self.part_1.result, self.part_1.time, self.part_2.result, self.part_2.time)
+        let write_dur = |f: &mut std::fmt::Formatter<'_>, dur: Duration| {
+            let secs = dur.as_secs_f64();
+            if secs >= 1.0 {
+                write!(f, "{:.2} s", secs)
+            } else if secs >= 0.001 {
+                write!(f, "{:.2} ms", secs * 1000.0)
+            } else {
+                let nanos = dur.as_nanos();
+                if nanos > 1000 {
+                    write!(f, "{} μs", nanos as f64 / 1000.0)
+                } else {
+                    write!(f, "{} ns", nanos)
+                }
+            }
+        };
+
+        write!(f, "{}/{}\tread time: ", self.year, self.day)?;
+
+        write_dur(f, self.read_time)?;
+        writeln!(f)?;
+
+        writeln!(f, "\tpart 1: {}", self.part_1.result)?;
+        write!(f, "\t\ttime: ")?;
+        write_dur(f, self.part_1.time)?;
+        writeln!(f)?;
+
+
+        writeln!(f, "\tpart 2: {}", self.part_2.result)?;
+        write!(f, "\t\ttime: ")?;
+        write_dur(f, self.part_2.time)?;
+        writeln!(f)
     }
 }
 
@@ -107,13 +137,13 @@ fn run_day(year: u32, day: u8) -> DayResult {
     let start = Instant::now();
     let input = fs::read_to_string(format!("./input/y{}/d{}", year, day)).unwrap();
     let input = input.trim().replace('\r', "");
-    let read_time = start.elapsed().as_secs_f64();
+    let read_time = start.elapsed();
 
     let functions = [PART_1[index], PART_2[index]];
     let mut results = functions.iter().map(|f| {
         let start = Instant::now();
         let result = (f)(input.as_str());
-        let time = start.elapsed().as_secs_f64();
+        let time = start.elapsed();
         PartResult { result, time }
     });
 
