@@ -132,10 +132,10 @@ impl Display for DayResult {
     }
 }
 
-fn run_day(year: u32, day: u8) -> DayResult {
+fn run_day(year: u32, day: u8) -> Option<DayResult> {
     let index = (year as usize - 2015) * 25 + day as usize - 1;
     let start = Instant::now();
-    let input = fs::read_to_string(format!("./input/y{}/d{}", year, day)).unwrap();
+    let input = fs::read_to_string(format!("./input/y{}/d{}", year, day)).ok()?;
     let input = input.trim().replace('\r', "");
     let read_time = start.elapsed();
 
@@ -147,13 +147,13 @@ fn run_day(year: u32, day: u8) -> DayResult {
         PartResult { result, time }
     });
 
-    DayResult {
+    Some(DayResult {
         year,
         day,
         read_time,
         part_1: results.next().unwrap(),
         part_2: results.next().unwrap(),
-    }
+    })
 }
 
 enum RunKind {
@@ -241,12 +241,12 @@ fn main() {
         create_year_folder(state.year);
     } else {
         match state.kind {
-            RunKind::Day => println!("{}", run_day(state.year, state.day)),
+            RunKind::Day => println!("{}", run_day(state.year, state.day).unwrap()),
             RunKind::Year => {
                 let year = state.year;
                 let mut v: Vec<_> = (1..=25)
                     .into_par_iter()
-                    .map(|day| run_day(year, day))
+                    .filter_map(|day| run_day(year, day))
                     .collect();
                 v.sort_by_key(|r| r.year * 100 + r.day as u32);
                 v.iter().for_each(|f| println!("{}", f));
@@ -255,7 +255,7 @@ fn main() {
                 let mut v: Vec<_> = (2015..2015 + YEAR_COUNT)
                     .cartesian_product(1..=25)
                     .par_bridge()
-                    .map(|(year, day)| run_day(year, day))
+                    .filter_map(|(year, day)| run_day(year, day))
                     .collect();
                 v.sort_by_key(|r| r.year * 100 + r.day as u32);
                 v.iter().for_each(|f| println!("{}", f));
