@@ -1,15 +1,8 @@
-use std::fmt::Display;
 use hashbrown::HashMap;
 use petgraph::prelude::UnGraphMap;
 
 #[derive(PartialEq, Eq, Copy, Clone, Hash, PartialOrd, Ord)]
 struct Node(u8);
-
-impl Display for Node {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}", self.0 as u8 as char, (self.0 >> 8) as u8 as char)
-    }
-}
 
 fn parse(input: &str) -> (UnGraphMap<Node, u32>, Vec<(Node, u32)>) {
 	let mut graph = UnGraphMap::new();

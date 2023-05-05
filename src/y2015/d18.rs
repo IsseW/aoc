@@ -3,7 +3,7 @@ use std::mem;
 use crate::helpers::{Grid, Rect};
 
 pub fn solution_1(input: &str) -> String {
-    let mut map = Grid::from_map(input);
+    let mut map = Grid::<bool>::from_map(input);
     let (width, height) = map.get_size();
     let mut m = Grid::new(width, height);
     let mut a = &mut map;
@@ -27,7 +27,7 @@ pub fn solution_1(input: &str) -> String {
 }
 
 pub fn solution_2(input: &str) -> String {
-    let mut map = Grid::from_map(input);
+    let mut map = Grid::<bool>::from_map(input);
     let (width, height) = map.get_size();
     let mut m = Grid::new(width, height);
     let mut a = &mut map;

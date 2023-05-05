@@ -1,5 +1,5 @@
 use num_traits::SaturatingSub;
-use rayon::prelude::{ParallelIterator, ParallelDrainRange, IntoParallelRefIterator, IndexedParallelIterator, ParallelBridge};
+use rayon::prelude::{ParallelIterator, ParallelBridge};
 use vek::Vec4;
 
 
@@ -94,8 +94,8 @@ fn solve(factory: Factory, blueprint: &Blueprint) -> Factory {
 				best_factory = factory;
 			}
 		}
-		let ext = factories.par_drain(..).flat_map(|factory| {
-			blueprint.costs.par_iter().enumerate().filter_map(move |(i, cost)| {
+		let ext = factories.drain(..).flat_map(|factory| {
+			blueprint.costs.iter().enumerate().filter_map(move |(i, cost)| {
 				if factory.rates[i] >= maxs[i] {
 					return None;
 				}

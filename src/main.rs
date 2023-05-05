@@ -136,7 +136,7 @@ fn run_day(year: u32, day: u8) -> Option<DayResult> {
     let index = (year as usize - 2015) * 25 + day as usize - 1;
     let start = Instant::now();
     let input = fs::read_to_string(format!("./input/y{}/d{}", year, day)).ok()?;
-    let input = input.trim().replace('\r', "");
+    let input = input.replace('\r', "");
     let read_time = start.elapsed();
 
     let functions = [PART_1[index], PART_2[index]];

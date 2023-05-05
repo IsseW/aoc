@@ -13,12 +13,12 @@ fn count_slope(grid: &Grid<bool>, slope: (usize, usize)) -> usize {
 }
 
 pub fn solution_1(input: &str) -> String {
-	let grid = Grid::from_map(input);
+	let grid = Grid::<bool>::from_map(input);
 	count_slope(&grid, (3, 1)).to_string()
 }
 
 pub fn solution_2(input: &str) -> String {
-	let grid = Grid::from_map(input);
+	let grid = Grid::<bool>::from_map(input);
 	const SLOPES: &[(usize, usize)] = &[
 		(1, 1),
 		(3, 1),

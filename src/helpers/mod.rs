@@ -4,6 +4,7 @@ mod line;
 mod node;
 pub mod spiral;
 pub mod volume;
+pub mod store;
 
 pub use grid::*;
 pub use line::*;

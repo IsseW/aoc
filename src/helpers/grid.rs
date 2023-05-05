@@ -31,6 +31,41 @@ impl<T, F: for<'a> Fn(&'a T) -> bool> Collider<T> for F {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, enum_map::Enum)]
+pub enum Dir {
+    Right,
+    Up,
+    Left,
+    Down,
+}
+
+impl Dir {
+    pub fn clockwise(&self) -> Dir {
+        match self {
+            Dir::Right => Dir::Down,
+            Dir::Up => Dir::Right,
+            Dir::Left => Dir::Up,
+            Dir::Down => Dir::Left,
+        }
+    }
+    pub fn cc_clockwise(&self) -> Dir {
+        match self {
+            Dir::Right => Dir::Up,
+            Dir::Up => Dir::Left,
+            Dir::Left => Dir::Down,
+            Dir::Down => Dir::Right,
+        }
+    }
+    pub fn opposite(&self) -> Dir {
+        match self {
+            Dir::Right => Dir::Left,
+            Dir::Up => Dir::Down,
+            Dir::Left => Dir::Right,
+            Dir::Down => Dir::Up,
+        }
+    }
+}
+
 pub struct GridWalker<'a, T, C: Collider<T> = ()> {
     mode: WrapMode,
     collider: Option<C>,
@@ -58,6 +93,7 @@ impl<'a, T, C: Collider<T>> GridWalker<'a, T, C> {
             collider: None,
         }
     }
+
     pub fn collider(&mut self, collider: C) -> &mut Self {
         self.collider = Some(collider);
         self
@@ -82,6 +118,15 @@ impl<'a, T, C: Collider<T>> GridWalker<'a, T, C> {
     }
     pub fn right(&mut self) {
         self.try_offset(1, 0);
+    }
+
+    pub fn walk_dir(&mut self, dir: Dir) {
+        match dir {
+            Dir::Up => self.up(),
+            Dir::Down => self.down(),
+            Dir::Left => self.left(),
+            Dir::Right => self.right(),
+        }
     }
 
     fn apply_offset(&self, x: i32, y: i32) -> (usize, usize) {
@@ -588,11 +633,17 @@ impl<'a, S: GridLinearSliceMut<'a>> DoubleEndedIterator for GridLinearMut<'a, S>
     }
 }
 
-#[derive(Clone, Copy)]
 pub struct GridRowSlice<'a, T> {
     grid: &'a Grid<T>,
     y: usize,
 }
+
+impl<'a, T> Clone for GridRowSlice<'a, T> {
+    fn clone(&self) -> Self {
+        Self { grid: self.grid, y: self.y }
+    }
+}
+impl<'a, T> Copy for GridRowSlice<'a, T> {}
 
 impl<'a, T> Index<usize> for GridRowSlice<'a, T> {
     type Output = T;
@@ -661,11 +712,17 @@ impl<'a, T> GridLinearSliceMut<'a> for GridRowSliceMut<'a, T> {
     }
 }
 
-#[derive(Clone, Copy)]
 pub struct GridColumnSlice<'a, T> {
     grid: &'a Grid<T>,
     x: usize,
 }
+
+impl<'a, T> Clone for GridColumnSlice<'a, T> {
+    fn clone(&self) -> Self {
+        Self { grid: self.grid, x: self.x }
+    }
+}
+impl<'a, T> Copy for GridColumnSlice<'a, T> {}
 
 impl<'a, T> Index<usize> for GridColumnSlice<'a, T> {
     type Output = T;
@@ -794,6 +851,20 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn from_fn<F: FnMut(usize, usize) -> T>(width: usize, height: usize, mut f: F) -> Self {
+        let mut data = Vec::with_capacity(width * height);
+        for y in 0..height {
+            for x in 0..width {
+                data.push(f(x, y));
+            }
+        }
+        Self {
+            data,
+            width,
+            height
+        }
+    }
+
     pub fn width(&self) -> usize {
         self.width
     }
@@ -808,6 +879,10 @@ impl<T> Grid<T> {
             width: 0,
             height: 0,
         }
+    }
+
+    pub fn mapped<U, F: FnMut(&T) -> U>(&self, mut f: F) -> Grid<U> {
+        Grid::from_fn(self.width, self.height, |x, y| f(self.get_unchecked(x, y)))
     }
 
     pub fn from_input<F: FnMut(char) -> Option<T>>(input: &str, mut map: F) -> Self
@@ -1234,7 +1309,7 @@ impl Grid<bool> {
         }
         for y in 0..other.height {
             for x in 0..other.width {
-                if self[(x + offset.0, y + offset.1)] && other[(x, y)] {
+                if unsafe { *self.get_unchecked_unsafe(x.saturating_add(offset.0), y.saturating_add(offset.1)) && *other.get_unchecked_unsafe(x, y) } {
                     return true;
                 }
             }
@@ -1245,11 +1320,69 @@ impl Grid<bool> {
         if offset.0 < self.width && offset.1 < self.height {
             for y in 0..other.height.min(self.height - offset.1) {
                 for x in 0..other.width.min(self.width - offset.0) {
-                    let other = other[(x, y)];
-                    self[(x + offset.0, y + offset.1)] |= other;
+                    *self.get_mut_unchecked(x + offset.0, y + offset.1) |= *other.get_unchecked(x, y);
                 }
             }
         }
+    }
+}
+
+impl Grid<Option<bool>> {
+    pub fn from_map(input: &str) -> Self {
+        let grid_vec = input.lines().map(|line| {
+            line.chars().map(|c| {
+                match c {
+                    '#' => Some(true),
+                    '.' => Some(false),
+                    _ => None,
+                }
+            }).collect_vec()
+        }).collect_vec();
+
+        let height = grid_vec.len();
+        let width = grid_vec.iter().map(|v| v.len()).max().unwrap();
+
+        let mut grid = Grid::new(width, height);
+
+        for (y, v) in grid_vec.into_iter().enumerate() {
+            for (x, c) in v.into_iter().enumerate() {
+                *grid.get_mut_unchecked(x, y) = c;
+            }
+        }
+
+        grid
+    }
+
+    pub fn to_map(&self) -> String {
+        let mut output = String::with_capacity((self.width + 1) * self.height);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                output.push(match self.get_unchecked(x, y) {
+                    Some(true) => '#',
+                    Some(false) => '.',
+                    None => ' ',
+                });
+            }
+            output.push('\n');
+        }
+        output
+    }
+}
+
+impl Grid<char> {
+    pub fn from_map(input: &str) -> Self {
+        Self::from_input(input, |c| Some(c))
+    }
+
+    pub fn to_map(&self) -> String {
+        let mut output = String::with_capacity((self.width + 1) * self.height);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                output.push(*self.get_unchecked(x, y));
+            }
+            output.push('\n');
+        }
+        output
     }
 }
 
