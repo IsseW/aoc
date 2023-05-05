@@ -1,4 +1,5 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, sync::atomic::AtomicUsize};
+use hashbrown::HashMap;
 use itertools::Itertools;
 
 #[derive(Clone, Copy, Debug)]
@@ -17,6 +18,8 @@ fn parse(input: &str) -> impl ExactSizeIterator<Item = Dir> + '_ + Clone {
 	})
 }
 
+static FALL_HEIGHT: AtomicUsize = AtomicUsize::new(0);
+
 fn sim_shape(i: usize, jets: &mut impl Iterator<Item = Dir>, grid: &mut BitGrid) -> (usize, usize) {
 	let mut shape = SHAPES[i % SHAPES.len()];
 	let mut height = grid.highest;
@@ -25,6 +28,7 @@ fn sim_shape(i: usize, jets: &mut impl Iterator<Item = Dir>, grid: &mut BitGrid)
 	shape.shift(jet());
 	shape.shift(jet());
 	shape.shift(jet());
+	let mut i = 0;
 	loop {
 		let mut new_shape = shape;
 		
@@ -35,12 +39,14 @@ fn sim_shape(i: usize, jets: &mut impl Iterator<Item = Dir>, grid: &mut BitGrid)
 			if grid.collides_with(shape, next_height) {
 				break;
 			} else {
+				i += 1;
 				height = next_height;
 			}
 		} else {
 			break;
 		}
 	}
+	FALL_HEIGHT.fetch_max(i, std::sync::atomic::Ordering::Relaxed);
 	grid.highest = grid.highest.max(height.wrapping_add(shape.height as usize));
 	grid.add_shape(shape, height);
 	(shape.min_x as usize, height)
@@ -189,6 +195,14 @@ impl<const W: usize> BitGrid<W> {
 
 		println!("{}", "-".repeat(2 + W));
 	}
+
+	fn get_top_layer(&self) -> Storage {
+		let cell = self.highest / Self::CELL_HEIGHT;
+		let o_cell = cell + 1;
+		
+		let p = self.highest % Self::CELL_HEIGHT;
+		((cell >> (p * W)) | (o_cell << ((Self::BITS - p) * W))) as Storage
+	}
 }
 
 fn simulate(jets: impl Iterator<Item = Dir> + Clone, num: usize) -> usize {
@@ -263,7 +277,7 @@ pub fn solution_2(input: &str) -> String {
 	
 		res
 	}).unwrap();
-
+	dbg!(FALL_HEIGHT.load(std::sync::atomic::Ordering::Relaxed));
 	let cycle_len = cycle_end - cycle_start;
 	let rest = (n - cycle_start) % cycle_len;
 	let rest = heights[cycle_start + rest - 1];
