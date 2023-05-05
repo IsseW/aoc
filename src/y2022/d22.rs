@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 use enum_map::EnumMap;
 use itertools::Itertools;
 
-use crate::helpers::{Grid, Dir, GridLinearSlice, GridIndex, GridIndexMut, store::Id};
+use crate::helpers::{Grid, Dir, GridLinearSlice, GridIndex, GridIndexMut, store::{Id, Store}};
 
 #[derive(Debug)]
 enum Instruction {
@@ -39,14 +39,59 @@ fn instructions(input: &str) -> impl Iterator<Item = Instruction> + '_ {
 	.flatten()
 }
 
-struct Chunk {
-	connected: EnumMap<Dir, (Dir, Id<Chunk>)>,
+trait ChunkType {
+	type Ref<T>;
+}
+
+struct Temp;
+
+impl ChunkType for Temp {
+    type Ref<T> = Option<Id<T>>;
+}
+
+struct Finished;
+
+impl ChunkType for Finished {
+    type Ref<T> = (Dir, Id<T>);
+}
+
+struct Chunk<T: ChunkType> {
+	connected: EnumMap<Dir, T::Ref<Self>>,
 	tiles: Grid<bool>,
 }
 
 struct Chunks {
-	
+	chunks: Store<Chunk<Finished>>,
 }
+/*
+impl Chunks {
+	fn from_input(input: &str) -> Self {
+		let full_grid = Grid::<Option<bool>>::from_map(input);
+		let mut chunk_grid = Grid::new(full_grid.width(), full_grid.height());
+		let mut chunks = Store::<Chunk<Temp>>::new();
+
+		for (tile, x, y) in full_grid.enumerate() {
+			if tile.is_none() || chunk_grid[(x, y)].is_some() {
+				continue;
+			}
+			let id = chunks.construct(|id| {
+				let mut width = 0;
+				let edges = EnumMap::<Dir, Option<Option<Id<Chunk<Temp>>>>>::default();
+				for x in x..full_grid.width() {
+					if full_grid[(x, y)]
+					let edge = full_grid[(x, y)].map(|_| chunk_grid[(x, y)]);
+					width += 1;
+					chunk_grid[(x, y)] = Some(id);
+				}
+
+				todo!()
+			});
+		}
+		
+		todo!()
+	}
+}
+*/
 
 pub fn solution_1(input: &str) -> String {
 	let (map, input) = input.split_once("\n\n").unwrap();
