@@ -1,4 +1,3 @@
-
 pub fn solution_1(input: &str) -> String {
     let mut bits = [0; 12];
     let mut num_lines = 0;
@@ -46,11 +45,11 @@ pub fn solution_2(input: &str) -> String {
         }
         let all = numbers.len();
         if numbers.len() > 1 {
-            numbers.drain_filter(|number| {
+            numbers.retain(|number| {
                 if count >= all - count {
-                    !number[i]
-                } else {
                     number[i]
+                } else {
+                    !number[i]
                 }
             });
         }
@@ -62,11 +61,11 @@ pub fn solution_2(input: &str) -> String {
         }
         let all = numbers2.len();
         if numbers2.len() > 1 {
-            numbers2.drain_filter(|number| {
+            numbers2.retain(|number| {
                 if count >= all - count {
-                    number[i]
-                } else {
                     !number[i]
+                } else {
+                    number[i]
                 }
             });
         }

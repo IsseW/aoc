@@ -1,10 +1,10 @@
 #![feature(
     iter_advance_by,
     pattern,
-    drain_filter,
+    extract_if,
     iter_collect_into,
     associated_type_defaults,
-    array_try_map,
+    array_try_map
 )]
 #![allow(dead_code, unused_variables)]
 
@@ -51,7 +51,7 @@ macro_rules! years {
     };
 }
 
-years!(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022);
+years!(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023);
 
 fn create_year_folder(year: u32) {
     let code_folder = format!("./src/y{}", year);
@@ -123,7 +123,6 @@ impl Display for DayResult {
         write!(f, "\t\ttime: ")?;
         write_dur(f, self.part_1.time)?;
         writeln!(f)?;
-
 
         writeln!(f, "\tpart 2: {}", self.part_2.result)?;
         write!(f, "\t\ttime: ")?;

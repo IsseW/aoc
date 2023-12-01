@@ -1,9 +1,7 @@
 use core::fmt;
 
 use itertools::Itertools;
-use rayon::iter::{
-    IntoParallelIterator, ParallelBridge, ParallelIterator,
-};
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use std::collections::HashMap;
 
 use crate::helpers::*;
@@ -115,9 +113,8 @@ impl State {
                         let mut new_state = self.clone();
                         new_state.current = (new_state.current as i32 + dir) as usize;
                         new_state.floors[self.current]
-                            .drain_filter(|&mut thing| combination.iter().any(|&&t| t == thing));
-                        new_state.floors[new_state.current]
-                            .extend(combination.iter().copied());
+                            .retain(|&thing| !combination.iter().any(|&&t| t == thing));
+                        new_state.floors[new_state.current].extend(combination.iter().copied());
                         new_state
                     })
             })
