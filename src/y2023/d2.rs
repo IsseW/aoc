@@ -52,10 +52,14 @@ fn bag_power(bag: Bag) -> u32 {
 
 fn parse_input(input: &str) -> impl Iterator<Item = Game> + '_ {
     input.lines().filter_map(|line| {
-        let (_, rest) = line.split_once(' ')?;
+        let rest = &line["Game ".len()..];
         let (id, sets_str) = rest.split_once(':')?;
 
-        let mut sets_chars = sets_str.char_indices();
+        let mut sets_chars = sets_str
+            .as_bytes()
+            .iter()
+            .enumerate()
+            .map(|(i, b)| (i, *b as char));
 
         let mut sets = StackVec::new();
         let mut bag = Bag::default();
@@ -106,15 +110,39 @@ fn parse_input(input: &str) -> impl Iterator<Item = Game> + '_ {
     })
 }
 
+pub fn solution_1(input: &str) -> String {
+    let bag = enum_map::enum_map! {
+        Color::Red => 12,
+        Color::Green => 13,
+        Color::Blue => 14,
+    };
+    parse_input(input)
+        .filter(|game| game.can_play(bag))
+        .map(|game| game.id)
+        .sum::<u32>()
+        .to_string()
+}
+
+pub fn solution_2(input: &str) -> String {
+    parse_input(input)
+        .map(|game| bag_power(game.fewest()))
+        .sum::<u32>()
+        .to_string()
+}
+
 #[allow(unused)]
 fn solution_1_speed(input: &str) -> String {
     input
         .lines()
         .filter_map(|line| {
-            let (_, rest) = line.split_once(' ')?;
+            let rest = &line["Game ".len()..];
             let (id, sets_str) = rest.split_once(':')?;
 
-            let mut sets_chars = sets_str.char_indices();
+            let mut sets_chars = sets_str
+                .as_bytes()
+                .iter()
+                .enumerate()
+                .map(|(i, b)| (i, *b as char));
 
             while let Some((_, c)) = sets_chars.next() {
                 debug_assert!(c == ' ', "Expected space, found: {c:?}");
@@ -165,22 +193,52 @@ fn solution_1_speed(input: &str) -> String {
         .to_string()
 }
 
-pub fn solution_1(input: &str) -> String {
-    let bag = enum_map::enum_map! {
-        Color::Red => 12,
-        Color::Green => 13,
-        Color::Blue => 14,
-    };
-    parse_input(input)
-        .filter(|game| game.can_play(bag))
-        .map(|game| game.id)
-        .sum::<u32>()
-        .to_string()
-}
+#[allow(unused)]
+fn solution_2_speed(input: &str) -> String {
+    input
+        .lines()
+        .filter_map(|line| {
+            let rest = &line["Game ".len()..];
+            let (id, sets_str) = rest.split_once(':')?;
 
-pub fn solution_2(input: &str) -> String {
-    parse_input(input)
-        .map(|game| bag_power(game.fewest()))
+            let mut sets_chars = sets_str
+                .as_bytes()
+                .iter()
+                .enumerate()
+                .map(|(i, b)| (i, *b as char));
+
+            let mut minimum_bag = Bag::default();
+
+            while let Some((_, c)) = sets_chars.next() {
+                debug_assert!(c == ' ', "Expected space, found: {c:?}");
+                // First one is a space, so number starts here.
+                let (i, _) = sets_chars.next().expect("Expected start of number");
+                let mut j = i + 1;
+                while let Some((i, c)) = sets_chars.next() {
+                    if c == ' ' {
+                        j = i;
+                        break;
+                    }
+                }
+                let count = sets_str[i..j]
+                    .parse::<u8>()
+                    .expect("Expected a valid number");
+                let (_, color) = if let Some((_, c)) = sets_chars.next() {
+                    match c {
+                        'r' => (sets_chars.nth("ed".len()), Color::Red),
+                        'g' => (sets_chars.nth("reen".len()), Color::Green),
+                        'b' => (sets_chars.nth("lue".len()), Color::Blue),
+
+                        _ => return None,
+                    }
+                } else {
+                    return None;
+                };
+                minimum_bag[color] = minimum_bag[color].max(count);
+            }
+
+            Some(bag_power(minimum_bag))
+        })
         .sum::<u32>()
         .to_string()
 }
