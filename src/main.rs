@@ -4,7 +4,8 @@
     extract_if,
     iter_collect_into,
     associated_type_defaults,
-    array_try_map
+    array_try_map,
+    iter_map_windows
 )]
 #![allow(dead_code, unused_variables)]
 
