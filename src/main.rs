@@ -5,7 +5,8 @@
     iter_collect_into,
     associated_type_defaults,
     array_try_map,
-    iter_map_windows
+    iter_map_windows,
+    iter_array_chunks
 )]
 #![allow(dead_code, unused_variables)]
 

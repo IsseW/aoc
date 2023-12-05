@@ -1,12 +1,11 @@
-use bitvec::array::BitArray;
-
 fn parse_input(input: &str) -> impl Iterator<Item = u32> + '_ {
     input.lines().map(|line| {
         let line = &line["Card ".len()..];
         let (id, numbers) = line.split_once(':').unwrap();
         let numbers = &numbers[1..];
 
-        let mut winning = BitArray::<[u64; 4]>::default();
+        let mut winning = [false; 256];
+
         let mut wins = 0;
         let mut iter = numbers.split_whitespace();
         while let Some(number) = iter.next() {
@@ -14,7 +13,7 @@ fn parse_input(input: &str) -> impl Iterator<Item = u32> + '_ {
                 break;
             } else {
                 let i = number.parse::<usize>().unwrap();
-                winning.set(i, true);
+                winning[i] = true;
             }
         }
         for number in iter {
