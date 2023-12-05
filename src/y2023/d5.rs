@@ -58,15 +58,17 @@ pub fn solution_2(input: &str) -> String {
             let to_e = dest + len - 1;
 
             let mut i = 0;
-            while i < seeds.len() {
+            let mut end = 0;
+            while i < seeds.len() - end {
                 let (s, e) = seeds[i];
                 if from_s <= e && from_e >= s {
                     match (from_s <= s, from_e >= e) {
                         (false, false) => {
                             new_seeds.push((to_s, to_e));
-                            seeds.insert(i + 1, (from_e + 1, seeds[i].1));
+                            seeds.push((from_e + 1, seeds[i].1));
                             seeds[i].1 = from_s - 1;
-                            i += 2;
+                            i += 1;
+                            end += 1;
                         }
                         (false, true) => {
                             let e = e - from_s;
@@ -85,6 +87,7 @@ pub fn solution_2(input: &str) -> String {
                             let e = e - from_s;
                             new_seeds.push((to_s + s, to_s + e));
                             seeds.swap_remove(i);
+                            end = end.saturating_sub(1);
                         }
                     }
                 } else {
