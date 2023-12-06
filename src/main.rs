@@ -6,7 +6,8 @@
     associated_type_defaults,
     array_try_map,
     iter_map_windows,
-    iter_array_chunks
+    iter_array_chunks,
+    isqrt
 )]
 #![allow(dead_code, unused_variables)]
 
