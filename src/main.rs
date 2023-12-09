@@ -7,7 +7,8 @@
     array_try_map,
     iter_map_windows,
     iter_array_chunks,
-    isqrt
+    isqrt,
+    get_many_mut
 )]
 #![allow(dead_code, unused_variables)]
 
