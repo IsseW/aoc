@@ -1,4 +1,4 @@
-use std::{iter::once, str::Chars, cmp::Ordering};
+use std::{cmp::Ordering, iter::once, str::Chars};
 
 #[derive(Clone, PartialEq)]
 enum Value {
@@ -23,18 +23,18 @@ fn parse_value(input: &mut Chars) -> Option<Value> {
             Some(Value::Array(values))
         }
         _ => {
-			let mut peek = input.clone();
-			let mut num = String::from(c);
-			while let Some(c) = peek.next() {
-				if ('0'..='9').contains(&c) {
-					*input = peek.clone();
-					num.push(c);
-				} else {
-					break;
-				}
-			}
-			Some(Value::Integer(num.parse().unwrap()))
-		},
+            let mut peek = input.clone();
+            let mut num = String::from(c);
+            while let Some(c) = peek.next() {
+                if c.is_ascii_digit() {
+                    *input = peek.clone();
+                    num.push(c);
+                } else {
+                    break;
+                }
+            }
+            Some(Value::Integer(num.parse().unwrap()))
+        }
     }
 }
 
@@ -64,21 +64,19 @@ fn is_list_ordered<'a>(
         .map(|(left, right)| is_ordered(left, right))
         .find(|res| matches!(res, Res::Ok | Res::Err))
         .unwrap_or(match left_len.cmp(&right_len) {
-				Ordering::Less => Res::Ok,
-				Ordering::Equal => Res::Continue,
-				Ordering::Greater => Res::Err,
-		})
+            Ordering::Less => Res::Ok,
+            Ordering::Equal => Res::Continue,
+            Ordering::Greater => Res::Err,
+        })
 }
 
 fn is_ordered(left: &Value, right: &Value) -> Res {
     match (left, right) {
-        (Value::Integer(left), Value::Integer(right)) => {
-			match left.cmp(right) {
-				Ordering::Less => Res::Ok,
-				Ordering::Equal => Res::Continue,
-				Ordering::Greater => Res::Err,
-			}
-        }
+        (Value::Integer(left), Value::Integer(right)) => match left.cmp(right) {
+            Ordering::Less => Res::Ok,
+            Ordering::Equal => Res::Continue,
+            Ordering::Greater => Res::Err,
+        },
         (Value::Array(left), Value::Array(right)) => is_list_ordered(left.iter(), right.iter()),
         (Value::Integer(_), Value::Array(right)) => is_list_ordered(once(left), right.iter()),
         (Value::Array(left), Value::Integer(_)) => is_list_ordered(left.iter(), once(right)),
@@ -98,27 +96,29 @@ pub fn solution_1(input: &str) -> String {
 }
 
 pub fn solution_2(input: &str) -> String {
-	let c = (Value::Array(vec![Value::Array(vec![Value::Integer(2)])]), Value::Array(vec![Value::Array(vec![Value::Integer(6)])]));
-	let mut v: Vec<Value> = parse(input).chain(once(c.clone())).flat_map(|(left, right)| {
-		[left, right]
-	}).collect();
+    let c = (
+        Value::Array(vec![Value::Array(vec![Value::Integer(2)])]),
+        Value::Array(vec![Value::Array(vec![Value::Integer(6)])]),
+    );
+    let mut v: Vec<Value> = parse(input)
+        .chain(once(c.clone()))
+        .flat_map(|(left, right)| [left, right])
+        .collect();
 
-	v.sort_by(|left, right| {
-		match is_ordered(left, right) {
-			Res::Ok => Ordering::Less,
-			Res::Continue => Ordering::Equal,
-			Res::Err => Ordering::Greater,
-		}
-	});
+    v.sort_by(|left, right| match is_ordered(left, right) {
+        Res::Ok => Ordering::Less,
+        Res::Continue => Ordering::Equal,
+        Res::Err => Ordering::Greater,
+    });
 
-	let mut indices = (0, 0);
-	for (i, value) in v.iter().enumerate() {
-		if value == &c.0 {
-			indices.0 = i + 1;
-		} else if value == &c.1 {
-			indices.1 = i + 1;
-		}
-	}
+    let mut indices = (0, 0);
+    for (i, value) in v.iter().enumerate() {
+        if value == &c.0 {
+            indices.0 = i + 1;
+        } else if value == &c.1 {
+            indices.1 = i + 1;
+        }
+    }
 
-	(indices.0 * indices.1).to_string()
+    (indices.0 * indices.1).to_string()
 }

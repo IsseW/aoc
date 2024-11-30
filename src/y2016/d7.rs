@@ -29,7 +29,7 @@ pub fn solution_1(input: &str) -> String {
     input
         .lines()
         .filter(|line| {
-            let w = line.split(|c| matches!(c, '[' | ']'));
+            let w = line.split(['[', ']']);
             let within = w.clone().skip(1).step_by(2).any(is_abba);
             let outside = w.step_by(2).any(is_abba);
             !within && outside
@@ -42,7 +42,7 @@ pub fn solution_2(input: &str) -> String {
     input
         .lines()
         .filter(|line| {
-            let w = line.split(|c| matches!(c, '[' | ']'));
+            let w = line.split(['[', ']']);
             let inside = w
                 .clone()
                 .skip(1)

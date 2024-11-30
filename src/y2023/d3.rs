@@ -34,7 +34,7 @@ pub fn solution_1(input: &str) -> String {
             while let Some((i, c)) = line_iter.next() {
                 if c.is_ascii_digit() {
                     let mut end = line.len();
-                    while let Some((i, c)) = line_iter.next() {
+                    for (i, c) in line_iter.by_ref() {
                         if !c.is_ascii_digit() {
                             end = i;
                             break;
@@ -98,7 +98,7 @@ pub fn solution_2(input: &str) -> String {
         while let Some((i, c)) = line_iter.next() {
             if c.is_ascii_digit() {
                 let mut end = line.len();
-                while let Some((i, c)) = line_iter.next() {
+                for (i, c) in line_iter.by_ref() {
                     if !c.is_ascii_digit() {
                         end = i;
                         break;

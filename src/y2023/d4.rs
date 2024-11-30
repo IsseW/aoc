@@ -8,7 +8,7 @@ fn parse_input(input: &str) -> impl Iterator<Item = u32> + '_ {
 
         let mut wins = 0;
         let mut iter = numbers.split_whitespace();
-        while let Some(number) = iter.next() {
+        for number in iter.by_ref() {
             if number == "|" {
                 break;
             } else {

@@ -21,7 +21,7 @@ impl Game {
         self.sets
             .iter()
             .copied()
-            .reduce(|a, b| add_colors(a, b))
+            .reduce(add_colors)
             .unwrap_or_default()
     }
 
@@ -69,7 +69,7 @@ fn parse_input(input: &str) -> impl Iterator<Item = Game> + '_ {
             // First one is a space, so number starts here.
             let (i, _) = sets_chars.next().expect("Expected start of number");
             let mut j = i + 1;
-            while let Some((i, c)) = sets_chars.next() {
+            for (i, c) in sets_chars.by_ref() {
                 if c == ' ' {
                     j = i;
                     break;
@@ -91,13 +91,10 @@ fn parse_input(input: &str) -> impl Iterator<Item = Game> + '_ {
             };
 
             bag[color] += count;
-            match n {
-                Some((_, ';')) => {
-                    sets.try_push(bag)
-                        .expect("There shouldn't be more than 6 bags");
-                    bag = Bag::default();
-                }
-                _ => {}
+            if matches!(n, Some((_, ';'))) {
+                sets.try_push(bag)
+                    .expect("There shouldn't be more than 6 bags");
+                bag = Bag::default();
             }
         }
         sets.try_push(bag)
@@ -149,7 +146,7 @@ fn solution_1_speed(input: &str) -> String {
                 // First one is a space, so number starts here.
                 let (i, _) = sets_chars.next()?;
                 let mut j = i + 1;
-                while let Some((i, c)) = sets_chars.next() {
+                for (i, c) in sets_chars.by_ref() {
                     if c == ' ' {
                         j = i;
                         break;
@@ -214,7 +211,7 @@ fn solution_2_speed(input: &str) -> String {
                 // First one is a space, so number starts here.
                 let (i, _) = sets_chars.next().expect("Expected start of number");
                 let mut j = i + 1;
-                while let Some((i, c)) = sets_chars.next() {
+                for (i, c) in sets_chars.by_ref() {
                     if c == ' ' {
                         j = i;
                         break;

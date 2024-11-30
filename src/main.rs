@@ -7,7 +7,6 @@
     array_try_map,
     iter_map_windows,
     iter_array_chunks,
-    isqrt,
     get_many_mut
 )]
 #![allow(dead_code, unused_variables)]
@@ -195,10 +194,10 @@ fn main() {
                     if matches!(bytes.next().map(|b| b as char), Some('c')) {
                         state.create = true
                     }
-                } else if (b'0'..=b'9').contains(&first) {
+                } else if first.is_ascii_digit() {
                     let mut number = (first - b'0') as u32;
                     for byte in bytes {
-                        if (b'0'..=b'9').contains(&byte) {
+                        if byte.is_ascii_digit() {
                             number *= 10;
                             number += (byte - b'0') as u32;
                         } else {

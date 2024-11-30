@@ -55,7 +55,7 @@ pub fn solution_1(input: &str) -> String {
         .lines()
         .enumerate()
         .filter(|(y, l)| {
-            let w = width.get_or_insert_with(|| l.len());
+            let w = width.get_or_insert(l.len());
             if let Some((x, _)) = l.bytes().enumerate().find(|(_, b)| *b == b'S') {
                 start_pos = Vec2::new(x, *y).as_::<i32>();
             }
@@ -122,7 +122,7 @@ pub fn solution_2(input: &str) -> String {
         .lines()
         .enumerate()
         .find_map(|(y, l)| {
-            let w = width.get_or_insert_with(|| l.len());
+            let w = width.get_or_insert(l.len());
             l.bytes()
                 .enumerate()
                 .find(|(_, b)| *b == b'S')

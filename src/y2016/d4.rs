@@ -15,7 +15,7 @@ pub fn solution_1(input: &str) -> String {
             };
             let counts = encrypted
                 .chars()
-                .take_while(|c| !('0'..='9').contains(c))
+                .take_while(|c| !c.is_ascii_digit())
                 .filter(|c| *c != '-')
                 .counts();
             let mut counts = counts.iter().collect_vec();

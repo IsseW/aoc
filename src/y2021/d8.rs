@@ -31,12 +31,8 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
     let possible_digits = (0..10u8)
         .filter(|&digit| segments.len() == DIGIT_POSITIONS[digit as usize].len())
         .filter(|&digit| {
-            DIGIT_POSITIONS[digit as usize].iter().all(|segment| {
-                true
-            });
+            DIGIT_POSITIONS[digit as usize].iter().all(|segment| true);
             segments.iter().all(|segment| {
-                dbg!(segment);
-                
                 possible[*segment as usize]
                     .iter()
                     .any(|possible| DIGIT_POSITIONS[digit as usize].contains(possible))
@@ -51,7 +47,7 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
         .flat_map(|&digit| DIGIT_POSITIONS[digit as usize].iter())
         .collect::<HashSet<_>>();
     for &segment in segments {
-        possible[segment as usize].drain_filter(|seg| !possible_segments.contains(seg));
+        possible[segment as usize].retain(|seg| possible_segments.contains(seg));
     }
     if possible_digits.len() == 1 {
         // If this is the only segment with this segment that is the only possible connection
@@ -63,7 +59,7 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
         }
         for (digit, seg) in refs {
             if seg.len() == 1 {
-                possible[seg[0] as usize].drain_filter(|&d| d != digit);
+                possible[seg[0] as usize].retain(|&d| d == digit);
             }
         }
     }
@@ -82,7 +78,7 @@ fn get_possible(segments: &Vec<u8>, possible: &mut [HashSet<u8>; 7]) -> Vec<u8> 
             {
                 let trim = possible[0].clone();
                 for i in (0..7).filter(|i| !combination.contains(i)) {
-                    possible[i].drain_filter(|elem| trim.contains(elem));
+                    possible[i].retain(|elem| !trim.contains(elem));
                 }
             }
         }

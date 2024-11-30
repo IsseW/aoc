@@ -159,7 +159,7 @@ impl<'a, T, C: Collider<T>> GridWalker<'a, T, C> {
     fn collides(&self, t: &T) -> bool {
         self.collider
             .as_ref()
-            .map_or(false, |collider| collider.collides(t))
+            .is_some_and(|collider| collider.collides(t))
     }
 
     pub fn pos(&self) -> (usize, usize) {
@@ -236,7 +236,7 @@ pub struct GridSliceMut<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I>> 
     rect: Rect<I>,
 }
 
-impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I>> GridSlice<'a, T, I>
+impl<T, I: AsPrimitive<usize> + ops::Add<I, Output = I>> GridSlice<'_, T, I>
 where
     usize: AsPrimitive<I>,
 {
@@ -252,8 +252,8 @@ where
     }
 }
 
-impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndex
-    for GridSlice<'a, T, I>
+impl<T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndex
+    for GridSlice<'_, T, I>
 where
     usize: AsPrimitive<I>,
 {
@@ -283,8 +283,8 @@ where
     }
 }
 
-impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndex
-    for GridSliceMut<'a, T, I>
+impl<T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndex
+    for GridSliceMut<'_, T, I>
 where
     usize: AsPrimitive<I>,
 {
@@ -314,8 +314,8 @@ where
     }
 }
 
-impl<'a, T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndexMut
-    for GridSliceMut<'a, T, I>
+impl<T, I: AsPrimitive<usize> + ops::Add<I, Output = I> + std::cmp::PartialOrd> GridIndexMut
+    for GridSliceMut<'_, T, I>
 where
     usize: AsPrimitive<I>,
 {
@@ -638,14 +638,14 @@ pub struct GridRowSlice<'a, T> {
     y: usize,
 }
 
-impl<'a, T> Clone for GridRowSlice<'a, T> {
+impl<T> Clone for GridRowSlice<'_, T> {
     fn clone(&self) -> Self {
-        Self { grid: self.grid, y: self.y }
+        *self
     }
 }
-impl<'a, T> Copy for GridRowSlice<'a, T> {}
+impl<T> Copy for GridRowSlice<'_, T> {}
 
-impl<'a, T> Index<usize> for GridRowSlice<'a, T> {
+impl<T> Index<usize> for GridRowSlice<'_, T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -673,7 +673,7 @@ pub struct GridRowSliceMut<'a, T> {
     y: usize,
 }
 
-impl<'a, T> Index<usize> for GridRowSliceMut<'a, T> {
+impl<T> Index<usize> for GridRowSliceMut<'_, T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -681,7 +681,7 @@ impl<'a, T> Index<usize> for GridRowSliceMut<'a, T> {
     }
 }
 
-impl<'a, T> IndexMut<usize> for GridRowSliceMut<'a, T> {
+impl<T> IndexMut<usize> for GridRowSliceMut<'_, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         self.get_mut(index).unwrap()
     }
@@ -717,14 +717,14 @@ pub struct GridColumnSlice<'a, T> {
     x: usize,
 }
 
-impl<'a, T> Clone for GridColumnSlice<'a, T> {
+impl<T> Clone for GridColumnSlice<'_, T> {
     fn clone(&self) -> Self {
-        Self { grid: self.grid, x: self.x }
+        *self
     }
 }
-impl<'a, T> Copy for GridColumnSlice<'a, T> {}
+impl<T> Copy for GridColumnSlice<'_, T> {}
 
-impl<'a, T> Index<usize> for GridColumnSlice<'a, T> {
+impl<T> Index<usize> for GridColumnSlice<'_, T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -752,7 +752,7 @@ pub struct GridColumnSliceMut<'a, T> {
     x: usize,
 }
 
-impl<'a, T> Index<usize> for GridColumnSliceMut<'a, T> {
+impl<T> Index<usize> for GridColumnSliceMut<'_, T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -760,7 +760,7 @@ impl<'a, T> Index<usize> for GridColumnSliceMut<'a, T> {
     }
 }
 
-impl<'a, T> IndexMut<usize> for GridColumnSliceMut<'a, T> {
+impl<T> IndexMut<usize> for GridColumnSliceMut<'_, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         self.get_mut(index).unwrap()
     }
@@ -861,7 +861,7 @@ impl<T> Grid<T> {
         Self {
             data,
             width,
-            height
+            height,
         }
     }
 
@@ -1309,7 +1309,12 @@ impl Grid<bool> {
         }
         for y in 0..other.height {
             for x in 0..other.width {
-                if unsafe { *self.get_unchecked_unsafe(x.saturating_add(offset.0), y.saturating_add(offset.1)) && *other.get_unchecked_unsafe(x, y) } {
+                if unsafe {
+                    *self.get_unchecked_unsafe(
+                        x.saturating_add(offset.0),
+                        y.saturating_add(offset.1),
+                    ) && *other.get_unchecked_unsafe(x, y)
+                } {
                     return true;
                 }
             }
@@ -1320,7 +1325,8 @@ impl Grid<bool> {
         if offset.0 < self.width && offset.1 < self.height {
             for y in 0..other.height.min(self.height - offset.1) {
                 for x in 0..other.width.min(self.width - offset.0) {
-                    *self.get_mut_unchecked(x + offset.0, y + offset.1) |= *other.get_unchecked(x, y);
+                    *self.get_mut_unchecked(x + offset.0, y + offset.1) |=
+                        *other.get_unchecked(x, y);
                 }
             }
         }
@@ -1329,15 +1335,18 @@ impl Grid<bool> {
 
 impl Grid<Option<bool>> {
     pub fn from_map(input: &str) -> Self {
-        let grid_vec = input.lines().map(|line| {
-            line.chars().map(|c| {
-                match c {
-                    '#' => Some(true),
-                    '.' => Some(false),
-                    _ => None,
-                }
-            }).collect_vec()
-        }).collect_vec();
+        let grid_vec = input
+            .lines()
+            .map(|line| {
+                line.chars()
+                    .map(|c| match c {
+                        '#' => Some(true),
+                        '.' => Some(false),
+                        _ => None,
+                    })
+                    .collect_vec()
+            })
+            .collect_vec();
 
         let height = grid_vec.len();
         let width = grid_vec.iter().map(|v| v.len()).max().unwrap();
@@ -1371,7 +1380,7 @@ impl Grid<Option<bool>> {
 
 impl Grid<char> {
     pub fn from_map(input: &str) -> Self {
-        Self::from_input(input, |c| Some(c))
+        Self::from_input(input, Some)
     }
 
     pub fn to_map(&self) -> String {

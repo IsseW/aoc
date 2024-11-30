@@ -19,7 +19,7 @@ fn parse(input: &str) -> HashMap<NodeId, Node> {
             _ => 1,
         } * split.next().unwrap().parse::<i32>().unwrap();
         split.advance_by(6).unwrap();
-        let o_name = split.next().unwrap().trim_end_matches(|c| c == '.');
+        let o_name = split.next().unwrap().trim_end_matches('.');
         let id = NodeId::new(name);
         let o_id = NodeId::new(o_name);
         if let Some(node) = map.get_mut(&id) {

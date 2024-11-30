@@ -100,6 +100,6 @@ pub fn solution_2(input: &str) -> String {
 
             end - start
         })
-        .fold(1, |acc, x| lcm(acc, x))
+        .fold(1, lcm)
         .to_string()
 }

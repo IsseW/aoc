@@ -16,19 +16,16 @@ impl CharacterSet {
 
     pub fn insert(&mut self, mut c: char) {
         c.make_ascii_lowercase();
-        assert!(('a'..='z').contains(&c));
         self.0 |= 1 << (c as u8 - b'a');
     }
 
     pub fn remove(&mut self, mut c: char) {
         c.make_ascii_lowercase();
-        assert!(('a'..='z').contains(&c));
         self.0 &= !(1 << (c as u8 - b'a'));
     }
 
     pub fn contains(&self, mut c: char) -> bool {
         c.make_ascii_lowercase();
-        assert!(('a'..='z').contains(&c));
         self.0 & (1 << (c as u8 - b'a')) != 0
     }
 }

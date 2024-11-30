@@ -3,7 +3,6 @@ use itertools::Itertools;
 pub fn solution_1(input: &str) -> String {
     input
         .split_whitespace()
-        .into_iter()
         .map(|present| {
             let split: (u32, u32, u32) = present
                 .split('x')
@@ -20,11 +19,8 @@ pub fn solution_1(input: &str) -> String {
 pub fn solution_2(input: &str) -> String {
     input
         .split_whitespace()
-        .into_iter()
         .map(|present| {
-            let mut iter = present
-                .split('x')
-                .map(|side| side.parse::<u32>().unwrap());
+            let mut iter = present.split('x').map(|side| side.parse::<u32>().unwrap());
             let split = [
                 iter.next().unwrap(),
                 iter.next().unwrap(),

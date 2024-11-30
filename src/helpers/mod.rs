@@ -3,8 +3,8 @@ mod grid;
 mod line;
 mod node;
 pub mod spiral;
-pub mod volume;
 pub mod store;
+pub mod volume;
 
 pub use grid::*;
 pub use line::*;
@@ -12,7 +12,7 @@ pub use node::*;
 use num_traits::Zero;
 
 pub fn parse_number<E: std::fmt::Debug, T: std::str::FromStr<Err = E>>(
-    chars: &Vec<char>,
+    chars: &[char],
     i: &mut usize,
 ) -> T {
     let mut t = String::new();
@@ -40,7 +40,7 @@ impl Eq for OrderedFloat {}
 
 impl PartialOrd for OrderedFloat {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }
 
@@ -77,23 +77,19 @@ impl fmt::Display for OrderedFloat {
 use core::str::pattern::Pattern;
 use std::{
     fmt,
-    marker::PhantomData,
     ops::Add,
     str::{pattern::ReverseSearcher, CharIndices},
 };
 
-pub struct Enclosures<'s, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> {
+pub struct Enclosures<'s, A: Pattern + Copy, B: Pattern + Copy> {
     string: &'s str,
     chars: CharIndices<'s>,
     start: A,
     end: B,
-    _marker: PhantomData<&'a ()>,
 }
 
-impl<'s: 'a, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> Iterator
-    for Enclosures<'s, 'a, A, B>
-{
-    type Item = &'a str;
+impl<'s, A: Pattern + Copy, B: Pattern + Copy> Iterator for Enclosures<'s, A, B> {
+    type Item = &'s str;
 
     fn next(&mut self) -> Option<Self::Item> {
         let s = loop {
@@ -128,44 +124,39 @@ impl<'s: 'a, 'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy> Iterator
 }
 
 pub trait StrUtil<'s>: Sized {
-    type EnclosureIter<'a, A: Copy + Pattern<'a>, B: Copy + Pattern<'a>>
+    type EnclosureIter<A: Copy + Pattern, B: Copy + Pattern>
     where
         Self: 's;
-    fn find_enclosures<'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy>(
+    fn find_enclosures<A: Pattern + Copy, B: Pattern + Copy>(
         self,
         start: A,
         end: B,
-    ) -> Self::EnclosureIter<'a, A, B>;
+    ) -> Self::EnclosureIter<A, B>;
 
-    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)>
+    fn split_once_last<P: Pattern + Copy>(self, p: P) -> Option<(Self, Self)>
     where
-        P::Searcher: ReverseSearcher<'a>,
-        'a: 's,
-        's: 'a;
+        P::Searcher<'s>: ReverseSearcher<'s>;
 }
 
 impl<'s> StrUtil<'s> for &'s str {
-    type EnclosureIter<'a, A: Copy + Pattern<'a>, B: Copy + Pattern<'a>> = Enclosures<'s, 'a, A, B>;
+    type EnclosureIter<A: Copy + Pattern, B: Copy + Pattern> = Enclosures<'s, A, B>;
 
-    fn find_enclosures<'a, A: Pattern<'a> + Copy, B: Pattern<'a> + Copy>(
+    fn find_enclosures<A: Pattern + Copy, B: Pattern + Copy>(
         self,
         start: A,
         end: B,
-    ) -> Self::EnclosureIter<'a, A, B> {
+    ) -> Self::EnclosureIter<A, B> {
         Enclosures {
             string: self,
             chars: self.char_indices(),
             start,
             end,
-            _marker: PhantomData,
         }
     }
 
-    fn split_once_last<'a, P: Pattern<'a> + Copy>(self, p: P) -> Option<(Self, Self)>
+    fn split_once_last<P: Pattern + Copy>(self, p: P) -> Option<(Self, Self)>
     where
-        P::Searcher: ReverseSearcher<'a>,
-        'a: 's,
-        's: 'a,
+        P::Searcher<'s>: ReverseSearcher<'s>,
     {
         self.char_indices()
             .rev()

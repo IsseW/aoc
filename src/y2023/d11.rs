@@ -15,10 +15,10 @@ pub fn solve(input: &str, mul: u64) -> String {
         galaxies.sort_unstable_by_key(|v| v[e]);
         let mut last = galaxies[0][e];
         let mut shift = 0;
-        for i in 1..galaxies.len() {
-            shift += (galaxies[i][e] - last).saturating_sub(1) * (mul - 1);
-            last = galaxies[i][e];
-            galaxies[i][e] += shift;
+        for galaxy in galaxies.iter_mut() {
+            shift += (galaxy[e] - last).saturating_sub(1) * (mul - 1);
+            last = galaxy[e];
+            galaxy[e] += shift;
         }
     }
 

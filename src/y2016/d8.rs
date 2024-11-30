@@ -18,7 +18,7 @@ fn parse_screen(input: &str) -> Grid<bool> {
                     let row = parts
                         .next()
                         .unwrap()
-                        .trim_start_matches(|a| a == 'y' || a == '=')
+                        .trim_start_matches(['y', '='])
                         .parse::<usize>()
                         .unwrap();
                     parts.next().unwrap();
@@ -35,17 +35,12 @@ fn parse_screen(input: &str) -> Grid<bool> {
                     let column = parts
                         .next()
                         .unwrap()
-                        .trim_start_matches(|a| a == 'x' || a == '=')
+                        .trim_start_matches(['x', '='])
                         .parse::<usize>()
                         .unwrap();
                     parts.next().unwrap();
                     let by = parts.next().unwrap().parse::<i32>().unwrap();
-                    let r: Vec<_> = screen
-                        .get_column(column)
-                        .unwrap()
-                        .iter()
-                        .copied()
-                        .collect();
+                    let r: Vec<_> = screen.get_column(column).unwrap().iter().copied().collect();
                     let mut column = screen.get_column_mut(column).unwrap();
                     let l = column.len() as i32;
                     for i in 0..l {

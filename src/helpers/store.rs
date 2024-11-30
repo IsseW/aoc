@@ -1,6 +1,4 @@
-use std::{marker::PhantomData, hash::Hash, fmt};
-
-
+use std::{fmt, hash::Hash, marker::PhantomData};
 
 pub struct Id<T> {
     idx: u32,
@@ -18,7 +16,7 @@ impl<T> Id<T> {
 
 impl<T> Clone for Id<T> {
     fn clone(&self) -> Self {
-        Self { idx: self.idx, phantom: PhantomData }
+        *self
     }
 }
 
@@ -34,7 +32,7 @@ impl<T> Eq for Id<T> {}
 
 impl<T> PartialOrd for Id<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.idx.partial_cmp(&other.idx)
+        Some(self.cmp(other))
     }
 }
 
@@ -56,7 +54,6 @@ impl<T> fmt::Debug for Id<T> {
     }
 }
 
-
 #[derive(Clone)]
 pub struct Store<T> {
     items: Vec<T>,
@@ -64,9 +61,7 @@ pub struct Store<T> {
 
 impl<T> Store<T> {
     pub fn new() -> Self {
-        Self {
-            items: Vec::new(),
-        }
+        Self { items: Vec::new() }
     }
 
     pub fn insert(&mut self, item: T) -> Id<T> {
@@ -80,7 +75,6 @@ impl<T> Store<T> {
         self.items.push(item);
         (id, self.items.last_mut().expect("We just pushed an item"))
     }
-
 
     pub fn construct(&mut self, f: impl FnOnce(Id<T>) -> T) -> Id<T> {
         let id = Id::new(self.items.len() as u32);
@@ -96,4 +90,3 @@ impl<T> Store<T> {
         self.items.get_mut(id.idx as usize).unwrap()
     }
 }
-

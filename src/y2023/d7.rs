@@ -13,8 +13,7 @@ pub fn solution_1(input: &str) -> String {
             let (hand_input, bid) = line.split_once(' ').unwrap();
             let mut hand = [0; 13];
             let mut hand_order = [0; 5];
-            let mut j = 0;
-            for char in hand_input.bytes() {
+            for (j, char) in hand_input.bytes().enumerate() {
                 let i = match char {
                     b'2'..=b'9' => char - b'2',
                     b'T' => 8,
@@ -25,7 +24,6 @@ pub fn solution_1(input: &str) -> String {
                     _ => panic!(),
                 };
                 hand_order[j] = i;
-                j += 1;
                 hand[i as usize] += 1;
             }
 
@@ -75,8 +73,7 @@ pub fn solution_2(input: &str) -> String {
             let (hand_input, bid) = line.split_once(' ').unwrap();
             let mut hand = [0; 13];
             let mut hand_order = [0; 5];
-            let mut j = 0;
-            for char in hand_input.bytes() {
+            for (j, char) in hand_input.bytes().enumerate() {
                 let i = match char {
                     b'J' => 0,
                     b'2'..=b'9' => char - b'2' + 1,
@@ -87,7 +84,6 @@ pub fn solution_2(input: &str) -> String {
                     _ => panic!(),
                 };
                 hand_order[j] = i;
-                j += 1;
                 hand[i as usize] += 1;
             }
 

@@ -38,11 +38,7 @@ pub fn extract_numbers<T: Num>(input: &str) -> Vec<T> {
     input
         .split_whitespace()
         .filter_map(|word| {
-            T::from_str_radix(
-                word.trim_end_matches(|c| matches!(c, '.' | ',' | '?' | '!' | ':' | ';')),
-                10,
-            )
-            .ok()
+            T::from_str_radix(word.trim_end_matches(['.', ',', '?', '!', ':', ';']), 10).ok()
         })
         .collect()
 }

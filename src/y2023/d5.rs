@@ -95,7 +95,7 @@ pub fn solution_2(input: &str) -> String {
                 }
             }
         }
-        seeds.extend(new_seeds.drain(..));
+        seeds.append(&mut new_seeds);
     }
 
     seeds.into_iter().map(|(s, _)| s).min().unwrap().to_string()
